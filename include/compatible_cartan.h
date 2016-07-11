@@ -7,11 +7,13 @@
 
 #include <armadillo>
 
+#include "qv/quiver_matrix.h"
+
 namespace refl {
 class CompatibleCartan {
 public:
 	bool
-	operator()(arma::mat const& lhs, arma::mat const& rhs) const;
+	operator()(cluster::QuiverMatrix const& lhs, arma::mat const& rhs) const;
 };
 }
 #endif
