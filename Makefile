@@ -45,7 +45,7 @@ INCLUDES = -I$(HOME)/include -I$(BASE_DIR)/include \
 LFLAGS = -L$(HOME)/lib -L$(BASE_DIR)/lib
 
 LIBS = -lopenblas -llapack -lqv -lginac
-TEST_LIBS = -lgtest -lgtest_main -lopenblas -llapack -pthread \
+TEST_LIBS = $(LIBS) -lgtest -lgtest_main -pthread \
 						-lboost_system
 
 MAIN = $(SRC_DIR)/main.cc
