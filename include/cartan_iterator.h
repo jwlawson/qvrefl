@@ -29,10 +29,10 @@ public:
 	/**
 	 * Get the next Cartan matrix.
 	 */
-	arma::mat&
+	arma::Mat<int>&
 	next();
 private:
-	arma::mat _initial;
+	arma::Mat<int> _initial;
 };
 }
 #endif

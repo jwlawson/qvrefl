@@ -13,19 +13,39 @@ namespace util {
 /**
  * Check if two arma::mats are equal.
  */
+template<class mat>
 bool
-equal(arma::mat const& lhs, arma::mat const& rhs);
+equal(mat const& lhs, mat const& rhs);
 /**
  * Convert a cluster QuiverMatrix to an armadillo matrix.
  */
-arma::mat
+arma::Mat<int>
 to_arma(cluster::QuiverMatrix const& q);
 /**
  * Construct the Gram matrix of the specified vectors using the provided
  * symmetric matrix as the inner product.
  */
-arma::mat
-gram(arma::mat const& vectors, arma::mat const& prod);
+template<class mat>
+mat
+gram(mat const& vectors, mat const& prod);
+}
+
+template<class mat>
+bool
+util::equal(mat const& a, mat const& b) {
+	constexpr double tol = 1e-10;
+	bool result = a.n_cols == b.n_cols && a.n_rows == b.n_rows;
+	for(auto a_it = a.begin(), a_end = a.end(), b_it = b.begin(), b_end = b.end();
+			a_it != a_end && b_it != b_end;
+			++a_it, ++b_it) {
+		result = result && std::abs(*a_it - *b_it) < tol;
+	}
+	return result;
+}
+template<class mat>
+mat
+util::gram(mat const& vectors, mat const& product){
+	return vectors.t() * product * vectors;
 }
 }
 #endif

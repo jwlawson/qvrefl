@@ -10,7 +10,7 @@ cluster::QuiverMatrix const&
 MutationStar::qv(int32_t k) {
 	return _initial;
 }
-arma::mat const&
+arma::Mat<int> const&
 MutationStar::arma(int32_t k) {
 	return _fake;
 }

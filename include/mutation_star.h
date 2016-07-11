@@ -27,11 +27,11 @@ public:
 	 */
 	cluster::QuiverMatrix const&
 	qv(int32_t k);
-	arma::mat const&
+	arma::Mat<int> const&
 	arma(int32_t k);
 private:
 	cluster::QuiverMatrix const& _initial;
-	arma::mat _fake;
+	arma::Mat<int> _fake;
 };
 }
 #endif

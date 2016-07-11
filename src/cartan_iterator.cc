@@ -12,7 +12,7 @@ bool
 CartanIterator::has_next() {
 	return false;
 }
-arma::mat&
+arma::Mat<int>&
 CartanIterator::next(){
 	return _initial;
 }

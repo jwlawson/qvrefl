@@ -12,12 +12,12 @@ TEST(CartanIt, 2Dim) {
 	cluster::QuiverMatrix q("{ { 0 1 } { -1 0 } }");
 	CartanIterator c(q);
 	ASSERT_TRUE(c.has_next());
-	arma::mat& a = c.next();
-	arma::mat exp = { { 2, 1 }, { 1, 2 } };
+	arma::Mat<int>& a = c.next();
+	arma::Mat<int> exp = { { 2, 1 }, { 1, 2 } };
 	EXPECT_TRUE(util::equal(a, exp));
 	ASSERT_TRUE(c.has_next());
 	a = c.next();
-	arma::mat exp2 = { { 2, -1 }, { -1, 2 } };
+	arma::Mat<int> exp2 = { { 2, -1 }, { -1, 2 } };
 	EXPECT_TRUE(util::equal(a, exp2));
 	ASSERT_FALSE(c.has_next());
 }
