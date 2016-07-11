@@ -11,6 +11,11 @@
 namespace refl {
 namespace util {
 /**
+ * Check if two arma::mats are equal.
+ */
+bool
+equal(arma::mat const& lhs, arma::mat const& rhs);
+/**
  * Convert a cluster QuiverMatrix to an armadillo matrix.
  */
 arma::mat
