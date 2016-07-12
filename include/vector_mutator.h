@@ -22,6 +22,9 @@ public:
 	 */
 	bool
 	mutate(arma::mat const& vectors, uint32_t k, arma::mat& output);
+private:
+	cluster::QuiverMatrix const& _quiver;
+	arma::mat const& _cartan;
 };
 }
 #endif
