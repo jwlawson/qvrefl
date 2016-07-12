@@ -14,6 +14,7 @@ public:
 	operator()(arma::Mat<int> const& a);
 private:
 	arma::vec _eigens;
+	arma::mat _double_mat;
 };
 }
 #endif

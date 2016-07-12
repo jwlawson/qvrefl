@@ -40,6 +40,7 @@ private:
 	get_next();
 };
 template <class It, class Output, class Filter, bool positive>
+inline
 FilteredIterator<It, Output, Filter, positive>::FilteredIterator(It && it)
 	: _it(std::move(it)),
 		_result(),
@@ -49,11 +50,13 @@ FilteredIterator<It, Output, Filter, positive>::FilteredIterator(It && it)
 	get_next();
 }
 template <class It, class Output, class Filter, bool positive>
+inline
 bool
 FilteredIterator<It, Output, Filter, positive>::has_next() {
 	return _got_next;
 }
 template <class It, class Output, class Filter, bool positive>
+inline
 const Output & 
 FilteredIterator<It, Output, Filter, positive>::next() {
 	_result.swap(_next);
@@ -61,6 +64,7 @@ FilteredIterator<It, Output, Filter, positive>::next() {
 	return _result;
 }
 template <class It, class Output, class Filter, bool positive>
+inline
 void 
 FilteredIterator<It, Output, Filter, positive>::get_next() {
 	if(!_it.has_next()) {
