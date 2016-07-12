@@ -12,6 +12,8 @@ class SemiPositiveFilter {
 public:
 	bool
 	operator()(arma::Mat<int> const& a);
+private:
+	arma::vec _eigens;
 };
 }
 #endif
