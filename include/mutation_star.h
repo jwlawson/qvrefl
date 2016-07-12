@@ -31,7 +31,8 @@ public:
 	arma(int32_t k);
 private:
 	cluster::QuiverMatrix const& _initial;
-	arma::Mat<int> _fake;
+	std::vector<cluster::QuiverMatrix> _qv_vector;
+	std::vector<arma::Mat<int>> _mat_vector;
 };
 }
 #endif

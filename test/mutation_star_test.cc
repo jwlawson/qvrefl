@@ -33,7 +33,7 @@ TEST(MutStar, A3) {
 
 	arma::Mat<int> d = { { 0, -1, 0 }, { 1, 0, 1 }, { 0, -1, 0 } };
 	EXPECT_TRUE(util::equal(d, m.arma(0)));
-	arma::Mat<int> e = { { 0, -1, 1 }, { 1, 0, -1 }, { -1, -1, 0 } };
+	arma::Mat<int> e = { { 0, -1, 1 }, { 1, 0, -1 }, { -1, 1, 0 } };
 	EXPECT_TRUE(util::equal(e, m.arma(1)));
 	arma::Mat<int> f = { { 0, 1, 0 }, { -1, 0, -1 }, { 0, 1, 0 } };
 	EXPECT_TRUE(util::equal(f, m.arma(2)));
