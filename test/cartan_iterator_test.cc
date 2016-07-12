@@ -13,6 +13,7 @@ TEST(CartanIt, 2Dim) {
 	CartanIterator c(q);
 	ASSERT_TRUE(c.has_next());
 	arma::Mat<int>& a = c.next();
+	a.print();
 	arma::Mat<int> exp = { { 2, 1 }, { 1, 2 } };
 	EXPECT_TRUE(util::equal(a, exp));
 	ASSERT_TRUE(c.has_next());
@@ -22,7 +23,7 @@ TEST(CartanIt, 2Dim) {
 	ASSERT_FALSE(c.has_next());
 }
 TEST(CartanIt, Count4) {
-	cluster::QuiverMatrix q("{ { 0 1 0 0 } { -1 0 1 0 } { 0 -1 0 1 } { 0 0 -1 0 } }");
+	cluster::QuiverMatrix q("{ { 0 1 1 1 } { -1 0 1 1 } { -1 -1 0 1 } { -1 -1 -1 0 } }");
 	CartanIterator c(q);
 	ASSERT_TRUE(c.has_next());
 	int count = 0;
@@ -30,6 +31,6 @@ TEST(CartanIt, Count4) {
 		c.next();
 		++count;
 	}
-	EXPECT_EQ(16, count);
+	EXPECT_EQ(64, count);
 }
 }

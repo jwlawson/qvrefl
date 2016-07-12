@@ -32,7 +32,11 @@ public:
 	arma::Mat<int>&
 	next();
 private:
-	arma::Mat<int> _initial;
+	uint32_t _number_vars;
+	arma::Mat<int> const _initial;
+	arma::Mat<int> _result;
+	uint64_t _current_val;
+	uint64_t _max_val;
 };
 }
 #endif
