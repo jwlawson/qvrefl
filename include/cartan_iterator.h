@@ -6,6 +6,7 @@
 #define REFL_CARTAN_ITERATOR_H__
 
 #include <armadillo>
+#include <boost/dynamic_bitset.hpp>
 
 #include "qv/quiver_matrix.h"
 
@@ -32,11 +33,13 @@ public:
 	arma::Mat<int>&
 	next();
 private:
-	uint32_t _number_vars;
+	uint_fast16_t const _number_vars;
 	arma::Mat<int> const _initial;
 	arma::Mat<int> _result;
-	uint64_t _current_val;
-	uint64_t _max_val;
+	boost::dynamic_bitset<> const _zero_mask;
+	uint_fast16_t const _non_zero_vars;
+	uint_fast64_t _current_val;
+	uint_fast64_t const _max_val;
 };
 }
 #endif
