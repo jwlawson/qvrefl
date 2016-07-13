@@ -9,8 +9,11 @@
 #include <armadillo>
 
 namespace refl {
+namespace {
+using Matrix = arma::Mat<int>;
+}
 TEST(VecMut, A2) {
-	arma::mat a = { { 2, 1 }, { 1, 2 } };
+	Matrix a = { { 2, 1 }, { 1, 2 } };
 	cluster::QuiverMatrix q("{ { 0 1 } { -1 0 } }");
 	VectorMutator vm(q, a);
 	arma::mat vecs = { { 0, 1 }, { 1, 0 } };
@@ -25,7 +28,7 @@ TEST(VecMut, A2) {
 	EXPECT_TRUE(arma::all(arma::all(exp2 == res2)));
 }
 TEST(VecMut, A3) {
-	arma::mat a = { { 2, 1, -1 }, { 1, 2, 1 }, { -1, 1, 2 } };
+	Matrix a = { { 2, 1, -1 }, { 1, 2, 1 }, { -1, 1, 2 } };
 	cluster::QuiverMatrix q("{ { 0 1 0 } { -1 0 1 } { 0 -1 0 } }");
 	VectorMutator vm(q, a);
 	arma::mat vecs = { { 1, 0, 0 }, { 0, 1, 0 }, { 0, 0, 1 } };
@@ -45,7 +48,7 @@ TEST(VecMut, A3) {
 	EXPECT_TRUE(arma::all(arma::all(exp2 == res2)));
 }
 TEST(VecMut, A3signs) {
-	arma::mat a = { { 2, -1, -1 }, { -1, 2, -1 }, { -1, -1, 2 } };
+	Matrix a = { { 2, -1, -1 }, { -1, 2, -1 }, { -1, -1, 2 } };
 	cluster::QuiverMatrix q("{ { 0 1 0 } { -1 0 1 } { 0 -1 0 } }");
 	VectorMutator vm(q, a);
 	arma::mat vecs = { { 1, 0, 0 }, { 0, 1, 0 }, { 0, 0, 1 } };
