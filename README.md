@@ -24,7 +24,7 @@ This gives another set of vectors, which have a gram matrix *G = ( (v'i, v'j) )*
 using the quadratic form defined by *A*.
 
 The quasi-Cartan matrix *A* **serves** the vertex *k* if *G* is a quasi-Cartan
-companion of the mutated matrix *mu<sub>k</sub>B = B'*, i.e. 
+companion of the mutated matrix *&mu;<sub>k</sub>B = B'*, i.e. 
 *|g<sub>ij</sub>| = |b'<sub>ij</sub>|*.
 
 This program finds which, if any of the semi-positive definite (i.e. all
