@@ -25,9 +25,9 @@ to_arma(cluster::QuiverMatrix const& q);
  * Construct the Gram matrix of the specified vectors using the provided
  * symmetric matrix as the inner product.
  */
-template<class mat>
-mat
-gram(mat const& vectors, mat const& prod);
+template<class mat1, class mat2>
+mat1
+gram(mat1 const& vectors, mat2 const& prod);
 }
 
 template<class mat>
@@ -42,9 +42,9 @@ util::equal(mat const& a, mat const& b) {
 	}
 	return result;
 }
-template<class mat>
-mat
-util::gram(mat const& vectors, mat const& product){
+template<class mat1, class mat2>
+mat1
+util::gram(mat1 const& vectors, mat2 const& product){
 	return vectors.t() * product * vectors;
 }
 }
