@@ -68,6 +68,7 @@ inline
 void 
 FilteredIterator<It, Output, Filter, positive>::get_next() {
 	if(!_it.has_next()) {
+		_got_next = false;
 		return;
 	}
 	do {
