@@ -17,9 +17,20 @@
 #include "util.h"
 
 namespace refl {
-std::vector<arma::Mat<int>>
+namespace {
+using MatrixVec = std::vector<arma::Mat<int>>;
+using UniqueCartanIter = FilteredIterator<CartanIterator, arma::Mat<int>, UniqueMatrixFilter>;
+using SemiPosIter = FilteredIterator<UniqueCartanIter, arma::Mat<int>, SemiPositiveFilter>;
+
+SemiPosIter
+get_cartan_iterator(cluster::QuiverMatrix const& q) {
+	CartanIterator cartan(q);
+	UniqueCartanIter unique(std::move(cartan));
+	return SemiPosIter(std::move(unique));
+}
+MatrixVec
 find_serving_cartans(cluster::QuiverMatrix const& q) {
-	std::vector<arma::Mat<int>> result(q.num_cols(), arma::Mat<int>(q.num_rows(), q.num_cols()));
+	MatrixVec result(q.num_cols(), arma::Mat<int>(q.num_rows(), q.num_cols()));
 	boost::dynamic_bitset<> found{ q.num_cols(), 0 };
 	const MutationStar star(q);
 	const arma::mat initial_vecs(q.num_rows(), q.num_cols(), arma::fill::eye);
@@ -28,14 +39,10 @@ find_serving_cartans(cluster::QuiverMatrix const& q) {
 
 	CompatibleCartan compatible;
 
-	using UniqueCartanIter = FilteredIterator<CartanIterator, arma::Mat<int>, UniqueMatrixFilter>;
-	using SemiPosIter = FilteredIterator<UniqueCartanIter, arma::Mat<int>, SemiPositiveFilter>;
-	CartanIterator cartan(q);
-	UniqueCartanIter unique(std::move(cartan));
-	SemiPosIter pos_iter(std::move(unique));
+	SemiPosIter pos_iter = get_cartan_iterator(q);
 
 	while(pos_iter.has_next() && !found.all()) {
-		const arma::Mat<int>& AQ = pos_iter.next();
+		arma::Mat<int> const& AQ = pos_iter.next();
 		VectorMutator vmut(q, AQ);
 		for(uint_fast16_t i = 0; i < AQ.n_cols; ++i) {
 			vmut.mutate(initial_vecs, i, mutated_vecs);
@@ -50,6 +57,7 @@ find_serving_cartans(cluster::QuiverMatrix const& q) {
 	return result;
 }
 }
+}
 void
 usage() {
 	std::cout << "qvrefl -m matrix" << std::cout.widen('\n');
@@ -60,11 +68,12 @@ int
 main(int argc, char* argv[]) {
 	std::string matrix;
 	int c;
-	while ((c = getopt (argc, argv, "m:")) != -1) {
+	while ((c = getopt (argc, argv, "m:h")) != -1) {
     switch (c) {
       case 'm':
 				matrix = optarg;
         break;
+			case 'h':
       case '?':
       default:
 				usage();
@@ -79,7 +88,7 @@ main(int argc, char* argv[]) {
 	auto res = refl::find_serving_cartans(q);
 	for(uint_fast16_t i = 0; i < res.size(); ++i) {
 		if(res[i].at(0, 0) != 2) {
-			std::cout << "!!" << i << " is not served by any quasi-Cartan" << std::cout.widen('\n');
+			std::cout << i << " is not served by any semi-positive quasi-Cartan" << std::cout.widen('\n');
 		} else {
 			std::string label;
 			label.append(std::to_string(i)).append(" served by");
