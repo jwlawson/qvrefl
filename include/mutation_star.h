@@ -26,9 +26,9 @@ public:
 	 * Get the mutation in the k-th direction of the initial quiver.
 	 */
 	cluster::QuiverMatrix const&
-	qv(int32_t k);
+	qv(uint_fast16_t k) const;
 	arma::Mat<int> const&
-	arma(int32_t k);
+	arma(uint_fast16_t k) const;
 private:
 	cluster::QuiverMatrix const& _initial;
 	std::vector<cluster::QuiverMatrix> _qv_vector;
