@@ -20,6 +20,10 @@
 
 #include <boost/dynamic_bitset.hpp>
 
+#include "qv/mutation_class_loader.h"
+#include "qv/equiv_mutation_class_loader.h"
+#include "qv/stream_iterator.h"
+
 #include "filtered_iterator.h"
 #include "cartan_iterator.h"
 #include "compatible_cartan.h"
@@ -66,26 +70,86 @@ find_serving_cartans(cluster::QuiverMatrix const& q) {
 			}
 		}
 	}
+	return result;
+}
+void
+output_serving_cartans(cluster::QuiverMatrix const& q, std::ostream& os = std::cout) {
+	auto res = refl::find_serving_cartans(q);
+	for(uint_fast16_t i = 0; i < res.size(); ++i) {
+		if(res[i].at(0, 0) != 2) {
+			os << i << " is not served by any semi-positive quasi-Cartan" << os.widen('\n');
+		} else {
+			std::string label;
+			label.append(std::to_string(i)).append(" served by");
+			res[i].print(os, label);
+		}
+	}
+}
+bool
+has_same_serving_cartan(cluster::QuiverMatrix const& q) {
+	bool result = false;
+	const MutationStar star(q);
+	const arma::mat initial_vecs(q.num_rows(), q.num_cols(), arma::fill::eye);
+	arma::mat mutated_vecs(q.num_rows(), q.num_cols());
+	arma::mat gram_matrix(q.num_rows(), q.num_cols());
 
+	CompatibleCartan compatible;
+
+	SemiPosIter pos_iter = get_cartan_iterator(q);
+
+	while(pos_iter.has_next() && !result) {
+		bool is_comp = true;
+		arma::Mat<int> const& AQ = pos_iter.next();
+		VectorMutator vmut(q, AQ);
+		for(uint_fast16_t i = 0; is_comp && i < AQ.n_cols; ++i) {
+			vmut.mutate(initial_vecs, i, mutated_vecs);
+			gram_matrix = util::gram(mutated_vecs, AQ);
+			is_comp = compatible(star.qv(i), gram_matrix);
+		}
+		result = is_comp;
+	}
 	return result;
 }
 }
 }
+enum Func {
+	ListCompatible,
+	SameCompatible
+};
 void
 usage() {
-	std::cout << "qvrefl -m matrix" << std::cout.widen('\n');
+	std::cout << "qvrefl -cls [-m matrix] [-i in_file]" << std::cout.widen('\n');
 	std::cout << "  -m Specify matrix to find quasi-Cartan companions of" << std::cout.widen('\n');
+	std::cout << "  -i Specify input file of matrices to read" << std::cout.widen('\n');
+	std::cout << "  -c Check the whole mutation class of the matrix" << std::cout.widen('\n');
+	std::cout << "  -l List the first quasi-Cartan serving each vertex" << std::cout.widen('\n');
+	std::cout << "  -s Check if there is a quasi-Cartan serving all vertices" << std::cout.widen('\n');
 	std::cout.flush();
 }
 int
 main(int argc, char* argv[]) {
 	std::string matrix;
+	Func function = Func::ListCompatible;
+	std::string input;
+	bool mut_class = false;
 	int c;
-	while ((c = getopt (argc, argv, "m:h")) != -1) {
+	while ((c = getopt (argc, argv, "lsm:i:hc")) != -1) {
     switch (c) {
       case 'm':
 				matrix = optarg;
         break;
+			case 'l':
+				function = Func::ListCompatible;
+				break;
+			case 's':
+				function = Func::SameCompatible;
+				break;
+			case 'i':
+				input = optarg;
+				break;
+			case 'c':
+				mut_class = true;
+				break;
 			case 'h':
       case '?':
       default:
@@ -93,19 +157,66 @@ main(int argc, char* argv[]) {
 				return 1;
 		}
 	}
-	if(matrix.length() < 4) {
+	if(matrix.length() < 4 && input.empty()) {
 		usage();
 		return 2;
 	}
-	cluster::QuiverMatrix q(matrix);
-	auto res = refl::find_serving_cartans(q);
-	for(uint_fast16_t i = 0; i < res.size(); ++i) {
-		if(res[i].at(0, 0) != 2) {
-			std::cout << i << " is not served by any semi-positive quasi-Cartan" << std::cout.widen('\n');
+	if(function == Func::ListCompatible) {
+		if(matrix.length() > 0) {
+			if(mut_class) {
+				cluster::EquivQuiverMatrix q(matrix);
+				cluster::EquivMutationClassLoader cl(q);
+				while(cl.has_next()) {
+					auto quiver = cl.next_ptr();
+					std::cout << *quiver << ":" << std::cout.widen('\n');
+					refl::output_serving_cartans(*quiver);
+				}
+			} else {
+				cluster::QuiverMatrix q(matrix);
+				refl::output_serving_cartans(q);
+			}
 		} else {
-			std::string label;
-			label.append(std::to_string(i)).append(" served by");
-			res[i].print(label);
+			std::ifstream inf;
+			inf.open(input);
+			if(!inf.is_open()) {
+				std::cerr << "Could not open file " << input << std::endl;
+				return 1;
+			}
+			cluster::StreamIterator<cluster::QuiverMatrix> iter(inf);
+			while(iter.has_next()) {
+				auto quiver = iter.next();
+				std::cout << *quiver << std::cout.widen('\n');
+				refl::output_serving_cartans(*quiver);
+			}
+		}
+	} else if (function == Func::SameCompatible) {
+		if(matrix.length() > 0) {
+			if(mut_class) {
+				cluster::EquivQuiverMatrix q(matrix);
+				cluster::EquivMutationClassLoader cl(q);
+				while(cl.has_next()) {
+					auto quiver = cl.next_ptr();
+					bool result = refl::has_same_serving_cartan(*quiver);
+					std::cout << (result ? "True: " : "False: ") << *quiver << std::cout.widen('\n');
+				}
+			} else {
+				cluster::QuiverMatrix q(matrix);
+				bool result = refl::has_same_serving_cartan(q);
+				std::cout << (result ? "True" : "False") << std::cout.widen('\n');
+			}
+		} else {
+			std::ifstream inf;
+			inf.open(input);
+			if(!inf.is_open()) {
+				std::cerr << "Could not open file " << input << std::endl;
+				return 1;
+			}
+			cluster::StreamIterator<cluster::QuiverMatrix> iter(inf);
+			while(iter.has_next()) {
+				auto quiver = iter.next();
+				bool result = refl::has_same_serving_cartan(*quiver);
+				std::cout << (result ? "True: " : "False: ") << *quiver << std::cout.widen('\n');
+			}
 		}
 	}
 	std::cout.flush();
