@@ -21,6 +21,8 @@
 #include <armadillo>
 #include "qv/quiver_matrix.h"
 
+#include <algorithm>
+
 namespace refl {
 namespace util {
 /**
@@ -48,11 +50,10 @@ bool
 util::equal(mat const& a, mat const& b) {
 	constexpr double tol = 1e-10;
 	bool result = a.n_cols == b.n_cols && a.n_rows == b.n_rows;
-	for(auto a_it = a.begin(), a_end = a.end(), b_it = b.begin(), b_end = b.end();
-			a_it != a_end && b_it != b_end;
-			++a_it, ++b_it) {
-		result = result && std::abs(*a_it - *b_it) < tol;
-	}
+	result = result && std::equal(a.begin(), a.end(), b.begin(),
+			[tol](double const& a, double const&b){
+			return std::abs(a - b) < tol;
+			} );
 	return result;
 }
 template<class mat1, class mat2>
