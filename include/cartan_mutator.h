@@ -24,44 +24,46 @@
 
 namespace refl {
 class CartanMutator {
- public:
-  CartanMutator(cluster::QuiverMatrix const& quiver);
+public:
+  CartanMutator(cluster::QuiverMatrix const &quiver);
 
   template <class elem_t>
-  void operator()(arma::Mat<elem_t> const& cartan,
-                                 uint_fast16_t k, arma::Mat<elem_t>& output);
+  void operator()(arma::Mat<elem_t> const &cartan, uint_fast16_t k,
+                  arma::Mat<elem_t> &output);
 
- private:
-  cluster::QuiverMatrix const& _quiver;
+private:
+  cluster::QuiverMatrix const &m_quiver;
 };
 
-CartanMutator::CartanMutator(cluster::QuiverMatrix const& q)
-    : _quiver(q) {
-}
+CartanMutator::CartanMutator(cluster::QuiverMatrix const &q) : m_quiver(q) {}
 
 template <class elem_t>
-void CartanMutator::operator()(arma::Mat<elem_t> const& cartan, uint_fast16_t k,
-                               arma::Mat<elem_t>& output) {
-  static constexpr auto sgn = [](auto const& x) { return x < 0 ? -1 : 1; };
-  static constexpr auto min0 = [](auto const& x) { return x < 0 ? 0 : x; };
-	output.set_size(arma::size(cartan));
-  for (uint_fast16_t row = 0, max = cartan.n_rows; row < max; ++row) {
-    for (uint_fast16_t col = 0; col < max; ++col) {
-      if (row == col) {
-        output.at(row, col) = 2;
-      } else if (col == k) {
-        output.at(row, col) = sgn(_quiver.get(row, k)) * cartan.at(row, k);
+void CartanMutator::operator()(arma::Mat<elem_t> const &cartan, uint_fast16_t k,
+                               arma::Mat<elem_t> &output) {
+  static constexpr auto sgn = [](auto const &x) { return x < 0 ? -1 : 1; };
+  static constexpr auto min0 = [](auto const &x) { return x < 0 ? 0 : x; };
+  output.set_size(arma::size(cartan));
+  uint_fast16_t max = cartan.n_rows;
+  for (uint_fast16_t col = 0; col < max; ++col) {
+    uint_fast16_t row = 0;
+    for (; row < col; ++row) {
+      output.at(row, col) = output.at(col, row);
+    }
+    output.at(row, col) = 2;
+		++row;
+    for (; row < max; ++row) {
+      if (col == k) {
+        output.at(row, col) = sgn(m_quiver.get(row, k)) * cartan.at(row, k);
       } else if (row == k) {
-        output.at(row, col) = -sgn(_quiver.get(k, col)) * cartan.at(k, col);
+        output.at(row, col) = -sgn(m_quiver.get(k, col)) * cartan.at(k, col);
       } else {
         output.at(row, col) =
             cartan.at(row, col) -
             sgn(cartan.at(row, k) * cartan.at(k, col)) *
-                min0(_quiver.get(row, k) * _quiver.get(k, col));
+                min0(m_quiver.get(row, k) * m_quiver.get(k, col));
       }
     }
   }
 }
 }
 #endif
-

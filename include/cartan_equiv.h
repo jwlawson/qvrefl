@@ -15,8 +15,8 @@
  * limitations under the License.
  */
 #pragma once
-#ifndef REFL_CARTAN_MUTATOR_H__
-#define REFL_CARTAN_MUTATOR_H__
+#ifndef REFL_CARTAN_EQUIV_H__
+#define REFL_CARTAN_EQUIV_H__
 
 #include <armadillo>
 #include <boost/dynamic_bitset.hpp>
