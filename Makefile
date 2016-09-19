@@ -15,7 +15,7 @@ CXXFLAGS += -fno-signaling-nans -fno-trapping-math
 CXXFLAGS += -ffinite-math-only -Wno-misleading-indentation
 OPT += -Ofast
 endif
-CXXFLAGS += -DARMA_DONT_USE_WRAPPER -DARMA_NO_DEBUG
+CXXFLAGS += -DARMA_DONT_USE_WRAPPER -DARMA_NO_DEBUG -DNDEBUG
 
 uname_S := $(shell sh -c 'uname -s 2>/dev/null || echo not')
 uname_M := $(shell sh -c 'uname -m 2>/dev/null || echo not')
@@ -76,6 +76,7 @@ $(TEST): $(OBJS) $(TEST_OBJS)
 bench: CXXFLAGS += -Wno-unused-variable
 bench: $(B_OBJ) $(OBJS)
 	$(CXX) $(CXXFLAGS) $(OPT) $(INCLUDES) -o bench $(B_OBJ) $(OBJS) $(LFLAGS) $(LIBS) -lbenchmark -pthread
+	@./bench
 
 test: $(TEST)
 	@echo Running tests
