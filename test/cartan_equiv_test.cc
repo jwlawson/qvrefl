@@ -111,4 +111,72 @@ TEST(CartanEquiv, DifferentSize) {
   EXPECT_FALSE(equiv(a, b));
   EXPECT_FALSE(equiv(b, a));
 }
+TEST(CartanEquiv, 5DimWithZeros) {
+  arma::Mat<int> a{{2, 1, -1, -2, 0},
+                   {1, 2, 1, -1, -1},
+                   {-1, 1, 2, 1, -1},
+                   {-2, -1, 1, 2, 0},
+                   {0, -1, -1, 0, 2}};
+  arma::Mat<int> b{{2, 1, 1, -2, 0},
+                   {1, 2, -1, -1, -1},
+                   {1, -1, 2, -1, 1},
+                   {-2, -1, -1, 2, 0},
+                   {0, -1, 1, 0, 2}};
+  CartanEquiv equiv;
+
+  EXPECT_TRUE(equiv(a, b));
+  EXPECT_TRUE(equiv(b, a));
+}
+TEST(CartanEquiv, 5DimMoreZeros) {
+  arma::Mat<int> a{{2, -2, 1, -1, 0},
+                   {-2, 2, -1, 1, 0},
+                   {1, -1, 2, 1, 1},
+                   {-1, 1, 1, 2, 1},
+                   {0, 0, 1, 1, 2}};
+  arma::Mat<int> b{{2, 2, -1, 1, 0},
+                   {2, 2, -1, 1, 0},
+                   {-1, -1, 2, 1, 1},
+                   {1, 1, 1, 2, 1},
+                   {0, 0, 1, 1, 2}};
+  CartanEquiv equiv;
+
+  EXPECT_TRUE(equiv(a, b));
+  EXPECT_TRUE(equiv(b, a));
+}
+TEST(CartanEquiv, MoreZeros) {
+  arma::Mat<int> a{{2, 0, -1, 1, 0},
+                   {0, 2, 1, -1, 0},
+                   {-1, 1, 2, 0, 1},
+                   {1, -1, 0, 2, 1},
+                   {0, 0, 1, 1, 2}};
+
+  // Multiply first row/col by -1
+  arma::Mat<int> b{{2, 0, 1, -1, 0},
+                   {0, 2, 1, -1, 0},
+                   {1, 1, 2, 0, 1},
+                   {-1, -1, 0, 2, 1},
+                   {0, 0, 1, 1, 2}};
+  CartanEquiv equiv;
+
+  EXPECT_TRUE(equiv(a, b));
+  EXPECT_TRUE(equiv(b, a));
+}
+TEST(CartanEquiv, YetMoreZeros) {
+  arma::Mat<int> a{{2, 0, 1, 1, 0},
+                   {0, 2, 1, 1, 0},
+                   {1, 1, 2, 2, 1},
+                   {1, 1, 2, 2, 1},
+                   {0, 0, 1, 1, 2}};
+
+  // Mutliply second row/col by -1
+  arma::Mat<int> b{{2, 0, 1, 1, 0},
+                   {0, 2, -1, -1, 0},
+                   {1, -1, 2, 2, 1},
+                   {1, -1, 2, 2, 1},
+                   {0, 0, 1, 1, 2}};
+  CartanEquiv equiv;
+
+  EXPECT_TRUE(equiv(a, b));
+  EXPECT_TRUE(equiv(b, a));
+}
 }

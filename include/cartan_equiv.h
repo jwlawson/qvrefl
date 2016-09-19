@@ -29,6 +29,7 @@ public:
 
 private:
   boost::dynamic_bitset<> flipped;
+  std::vector<size_t> undecided;
 };
 
 template <class elem_t>
@@ -40,28 +41,52 @@ bool CartanEquiv::operator()(arma::Mat<elem_t> const &lhs,
   auto fl_ind = [nrows](size_t row, size_t col) { return col * nrows + row; };
   flipped.reset();
   flipped.resize(nrows * ncols, false);
+  undecided.clear();
   size_t col = 0;
   for (size_t row = col + 1; result && row < nrows; ++row) {
-    bool already_flipped = flipped.test(fl_ind(row, col));
-    if (lhs(row, col) == -rhs(row, col)) {
-      // If already flipped, then this has been fixed.
-      if (!already_flipped) {
-        for (size_t second = col + 1; second < row; ++second) {
-          flipped.flip(fl_ind(row, second));
-        }
-        for (size_t first = row + 1; first < ncols; ++first) {
-          flipped.flip(fl_ind(first, row));
-        }
+    elem_t const lval = lhs(row, col);
+    elem_t const rval = rhs(row, col);
+    if (lval == 0 && rval == 0) {
+      undecided.push_back(row);
+    } else if (lval == -rval) {
+      for (size_t second = 1; second < row; ++second) {
+        flipped.flip(fl_ind(row, second));
+      }
+      for (size_t first = row + 1; first < ncols; ++first) {
+        flipped.flip(fl_ind(first, row));
       }
     } else {
-      result = !already_flipped && lhs(row, col) == rhs(row, col);
+      result = lval == rval;
     }
   }
   for (col = 1; result && col < ncols; ++col) {
     for (size_t row = col + 1; result && row < nrows; ++row) {
+      elem_t const lval = lhs(row, col);
+      elem_t const rval = rhs(row, col);
+      if (lval == 0 && rval == 0) {
+        continue;
+      }
       bool already_flipped = flipped.test(fl_ind(row, col));
-      result = (already_flipped && lhs(row, col) == -rhs(row, col)) ||
-               (!already_flipped && lhs(row, col) == rhs(row, col));
+      result = (already_flipped && lval == -rval) ||
+               (!already_flipped && lval == rval);
+      auto iter_pos = std::find(undecided.begin(), undecided.end(), row);
+			size_t flip_row = row;
+      if (iter_pos == undecided.end()) {
+        iter_pos = std::find(undecided.begin(), undecided.end(), col);
+				flip_row = col;
+      }
+      if (iter_pos != undecided.end()) {
+        if (!result) {
+          for (size_t second = 1; second < flip_row; ++second) {
+            flipped.flip(fl_ind(flip_row, second));
+          }
+          for (size_t first = flip_row + 1; first < ncols; ++first) {
+            flipped.flip(fl_ind(first, flip_row));
+          }
+        }
+        undecided.erase(iter_pos);
+        result = true;
+      }
     }
   }
 
