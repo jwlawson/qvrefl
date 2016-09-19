@@ -1,5 +1,5 @@
 /**
- * main.cc
+ * qvrefl.cc
  * Copyright 2016 John Lawson
  * 
  * Licensed under the Apache License, Version 2.0 (the "License");

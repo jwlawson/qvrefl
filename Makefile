@@ -46,22 +46,23 @@ LFLAGS = -L$(HOME)/lib -L$(BASE_DIR) -L$(BASE_DIR)/lib
 LIBS = -lopenblas -lqv
 TEST_LIBS = $(LIBS) -lgtest -lgtest_main -lboost_system -pthread
 
-MAIN = $(SRC_DIR)/main.cc
+MAIN = $(SRC_DIR)/qvrefl.cc
+CARTAN = $(SRC_DIR)/cartan.cc
 BENCH = $(SRC_DIR)/benchmark.cc
-SRCS = $(filter-out $(MAIN) $(BENCH), $(wildcard $(SRC_DIR)/*.cc))
+SRCS = $(filter-out $(MAIN) $(BENCH) $(CARTAN), $(wildcard $(SRC_DIR)/*.cc))
 TEST_SRCS = $(wildcard $(TEST_DIR)/*.cc)
 
 _OBJS = $(SRCS:.cc=.o)
 _M_OBJ = $(MAIN:.cc=.o)
 _B_OBJ = $(BENCH:.cc=.o)
+_C_OBJ = $(CARTAN:.cc=.o)
 _TEST_OBJS = $(TEST_SRCS:.cc=.o)
 
 OBJS = $(patsubst $(SRC_DIR)/%,$(OBJ_DIR)/%,$(_OBJS))
 M_OBJ = $(patsubst $(SRC_DIR)/%,$(OBJ_DIR)/%,$(_M_OBJ))
 B_OBJ = $(patsubst $(SRC_DIR)/%,$(OBJ_DIR)/%,$(_B_OBJ))
+C_OBJ = $(patsubst $(SRC_DIR)/%,$(OBJ_DIR)/%,$(_C_OBJ))
 TEST_OBJS = $(patsubst $(TEST_DIR)/%,$(OBJ_DIR)/%,$(_TEST_OBJS))
-
-PROF = #-fprofile-use
 
 .PHONY: clean all test depend
 
@@ -71,25 +72,28 @@ $(NAME): $(M_OBJ) $(OBJS)
 	$(CXX) $(CXXFLAGS) $(OPT) $(INCLUDES) -o $(NAME) $(M_OBJ) $(OBJS) $(LFLAGS) $(LIBS)
 
 $(TEST): $(OBJS) $(TEST_OBJS)
-	$(CXX) $(PROF) $(CXXFLAGS) $(B_OPT) $(INCLUDES) -o $(TEST) $(TEST_OBJS) $(OBJS) $(LFLAGS) $(TEST_LIBS)
+	$(CXX) $(CXXFLAGS) $(B_OPT) $(INCLUDES) -o $(TEST) $(TEST_OBJS) $(OBJS) $(LFLAGS) $(TEST_LIBS)
 
 bench: CXXFLAGS += -Wno-unused-variable
 bench: $(B_OBJ) $(OBJS)
 	$(CXX) $(CXXFLAGS) $(OPT) $(INCLUDES) -o bench $(B_OBJ) $(OBJS) $(LFLAGS) $(LIBS) -lbenchmark -pthread
 	@./bench
 
+cartan: $(C_OBJ) $(OBJS)
+	$(CXX) $(CXXFLAGS) $(OPT) $(INCLUDES) -o cartan $(C_OBJ) $(OBJS) $(LFLAGS) $(LIBS)
+
 test: $(TEST)
 	@echo Running tests
 	@./$(TEST)
 
 $(OBJ_DIR)/%.o: $(SRC_DIR)/%.cc $(INC_DIR)/%.h
-	$(CXX) $(PROF) $(CXXFLAGS) $(OPT) $(INCLUDES) -c $< -o $@
+	$(CXX) $(CXXFLAGS) $(OPT) $(INCLUDES) -c $< -o $@
 
 $(OBJ_DIR)/%.o: $(SRC_DIR)/%.cc
-	$(CXX) $(PROF) $(CXXFLAGS) $(OPT) $(INCLUDES) -c $< -o $@
+	$(CXX) $(CXXFLAGS) $(OPT) $(INCLUDES) -c $< -o $@
 
 $(OBJ_DIR)/%.o: $(TEST_DIR)/%.cc
-	$(CXX) $(PROF) $(CXXFLAGS) $(OPT) $(INCLUDES) -c $< -o $@
+	$(CXX) $(CXXFLAGS) $(OPT) $(INCLUDES) -c $< -o $@
 
 $(OBJS): | $(OBJ_DIR)
 $(M_OBJ): | $(OBJ_DIR)
