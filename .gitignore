@@ -15,4 +15,5 @@ callgrind.*
 core.*
 cachegrind.*
 *.so.*
+bench
 
