@@ -16,4 +16,5 @@ core.*
 cachegrind.*
 *.so.*
 bench
+cartan
 

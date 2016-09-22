@@ -16,6 +16,8 @@
  */
 #include "cartan_equiv.h"
 #include "cartan_mutator.h"
+#include "compatible_cartan.h"
+#include "mutation_star.h"
 #include "util.h"
 #include "vector_mutator.h"
 
@@ -24,43 +26,68 @@
 #include <unistd.h>
 
 
-void check_cartan(cluster::QuiverMatrix const& quiver, arma::Mat<int> const& cartan) {
+bool
+check_compatible(cluster::QuiverMatrix const& q,
+		arma::Mat<int> const& cartan, std::ostream& os = std::cout) {
+	bool result = true;
+	const refl::MutationStar star(q);
+	const arma::mat initial_vecs(q.num_rows(), q.num_cols(), arma::fill::eye);
+	arma::mat mutated_vecs(q.num_rows(), q.num_cols());
+	arma::mat gram_matrix(q.num_rows(), q.num_cols());
+
+	refl::CompatibleCartan compatible;
+	if(!compatible(q, cartan) ) {
+		result = false;
+		os << "Initial matrix not compatible" << os.widen('\n');
+	}
+	refl::VectorMutator vmut(q, cartan);
+	for(uint_fast16_t i = 0; i < cartan.n_cols; ++i) {
+		vmut.mutate(initial_vecs, i, mutated_vecs);
+		gram_matrix = refl::util::gram(mutated_vecs, cartan);
+		if(!compatible(star.qv(i), gram_matrix) ) {
+			result = false;
+			os << "Mutation at " << i + 1 << " not compatible" << os.widen('\n');
+		}
+	}
+	return result;
+}
+bool check_cartan(cluster::QuiverMatrix const& quiver, arma::Mat<int> const& cartan) {
+	bool result = true;
 	uint_fast16_t const nrows = cartan.n_rows;
 	uint_fast16_t const ncols = cartan.n_cols;
-	arma::Mat<int> const vecs(nrows, ncols, arma::fill::eye);
-	refl::VectorMutator vmut{quiver, cartan};
 	refl::CartanMutator cmut{quiver};
 	refl::CartanEquiv cequiv;
 	
-	arma::Mat<int> mutated_vecs(nrows, ncols);
 	arma::Mat<int> mutated_cartan(nrows, ncols);
-	arma::Mat<int> gram(nrows, ncols);
-
-	std::cout << quiver << std::cout.widen('\n');
+	cluster::QuiverMatrix mutated_quiver(nrows, ncols);
 
 	for (uint_fast16_t k = 0; k < cartan.n_rows; ++k) {
-		vmut.mutate(vecs, k, mutated_vecs);
-		gram = refl::util::gram( mutated_vecs, cartan );
 		cmut(cartan, k, mutated_cartan);
+		quiver.mutate(k, mutated_quiver);
 
-		if(!cequiv(mutated_cartan, gram) ) {
-			std::cout << k << ": " << "not compatible" << std::cout.widen('\n');
+		if(!check_compatible(mutated_quiver, mutated_cartan) ) {
+			result = false;
+			std::cout << k + 1 << ": " << "not compatible" << std::cout.widen('\n')
+				<< "Mutated quiver:\n" << mutated_quiver << std::cout.widen('\n');
 			mutated_cartan.print("Mutated cartan:");
-			gram.print("Gram of mutated vectors:");
 		}
 	}
+	return result;
 }
 void run_on_input(std::istream& is) {
 	std::string line;
 	arma::Mat<int> c;
+	size_t count = 0;
 	while(is.good() ) {
 		cluster::QuiverMatrix *q = nullptr;
 		if(std::getline(is, line) && line.length() > 4 ) {
 			q = new cluster::QuiverMatrix(line);
 		} 
-		if( std::getline(is, line) && line.length() > 4 ) {
+		if( q && std::getline(is, line) && line.length() > 4 ) {
 			cluster::QuiverMatrix cq {line};
+			std::cout << ++count << ": " << *q << std::cout.widen('\n');
 			c = refl::util::to_arma(cq);
+			check_compatible(*q, c);
 		}
 		if( q && !c.empty() ) {
 			check_cartan( *q, c );
