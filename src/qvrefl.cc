@@ -85,9 +85,10 @@ output_serving_cartans(cluster::QuiverMatrix const& q, std::ostream& os = std::c
 		}
 	}
 }
-bool
+std::pair<bool, arma::Mat<int> >
 has_same_serving_cartan(cluster::QuiverMatrix const& q) {
 	bool result = false;
+	arma::Mat<int> cartan;
 	const MutationStar star(q);
 	const arma::mat initial_vecs(q.num_rows(), q.num_cols(), arma::fill::eye);
 	arma::mat mutated_vecs(q.num_rows(), q.num_cols());
@@ -107,37 +108,69 @@ has_same_serving_cartan(cluster::QuiverMatrix const& q) {
 			is_comp = compatible(star.qv(i), gram_matrix);
 		}
 		result = is_comp;
+		if(result) {
+			cartan = AQ;
+		}
 	}
-	return result;
+	return {result, cartan};
+}
+void
+check_compatible(cluster::QuiverMatrix const& q,
+		cluster::QuiverMatrix const& cartan, std::ostream& os = std::cout) {
+	arma::Mat<int> AQ = util::to_arma(cartan);
+	const MutationStar star(q);
+	const arma::mat initial_vecs(q.num_rows(), q.num_cols(), arma::fill::eye);
+	arma::mat mutated_vecs(q.num_rows(), q.num_cols());
+	arma::mat gram_matrix(q.num_rows(), q.num_cols());
+
+	CompatibleCartan compatible;
+	if(! compatible(q, AQ) ) {
+		os << "Initial matrix not compatible" << os.widen('\n');
+	}
+	VectorMutator vmut(q, AQ);
+	for(uint_fast16_t i = 0; i < AQ.n_cols; ++i) {
+		vmut.mutate(initial_vecs, i, mutated_vecs);
+		gram_matrix = util::gram(mutated_vecs, AQ);
+		if(!compatible(star.qv(i), gram_matrix) ) {
+			os << "Mutation at " << i << " not compatible" << os.widen('\n');
+		}
+	}
 }
 }
 }
 enum Func {
 	ListCompatible,
-	SameCompatible
+	SameCompatible,
+	CheckSingle
 };
 void
 usage() {
-	std::cout << "qvrefl -cls [-m matrix] [-i in_file]" << std::cout.widen('\n');
+	std::cout << "qvrefl -cls [-m matrix] [-i in_file] [-a cartan]" << std::cout.widen('\n');
 	std::cout << "  -m Specify matrix to find quasi-Cartan companions of" << std::cout.widen('\n');
 	std::cout << "  -i Specify input file of matrices to read" << std::cout.widen('\n');
 	std::cout << "  -c Check the whole mutation class of the matrix" << std::cout.widen('\n');
 	std::cout << "  -l List the first quasi-Cartan serving each vertex" << std::cout.widen('\n');
 	std::cout << "  -s Check if there is a quasi-Cartan serving all vertices" << std::cout.widen('\n');
+	std::cout << "  -a Specify a cartan matrix to check whether it serves every vertex" << std::cout.widen('\n');
 	std::cout.flush();
 }
 int
 main(int argc, char* argv[]) {
 	std::string matrix;
+	std::string cartan;
 	Func function = Func::ListCompatible;
 	std::string input;
 	bool mut_class = false;
 	int c;
-	while ((c = getopt (argc, argv, "lsm:i:hc")) != -1) {
+	while ((c = getopt (argc, argv, "lsm:i:hca:")) != -1) {
     switch (c) {
       case 'm':
 				matrix = optarg;
         break;
+			case 'a':
+				cartan = optarg;
+				function = Func::CheckSingle;
+				break;
 			case 'l':
 				function = Func::ListCompatible;
 				break;
@@ -196,13 +229,13 @@ main(int argc, char* argv[]) {
 				cluster::EquivMutationClassLoader cl(q);
 				while(cl.has_next()) {
 					auto quiver = cl.next_ptr();
-					bool result = refl::has_same_serving_cartan(*quiver);
+					bool result = refl::has_same_serving_cartan(*quiver).first;
 					std::cout << (result ? "True: " : "False: ") << *quiver << std::cout.widen('\n');
 				}
 			} else {
 				cluster::QuiverMatrix q(matrix);
-				bool result = refl::has_same_serving_cartan(q);
-				std::cout << (result ? "True" : "False") << std::cout.widen('\n');
+				auto result = refl::has_same_serving_cartan(q);
+				std::cout << (result.first ? result.second : "False") << std::cout.widen('\n');
 			}
 		} else {
 			std::ifstream inf;
@@ -214,10 +247,18 @@ main(int argc, char* argv[]) {
 			cluster::StreamIterator<cluster::QuiverMatrix> iter(inf);
 			while(iter.has_next()) {
 				auto quiver = iter.next();
-				bool result = refl::has_same_serving_cartan(*quiver);
+				bool result = refl::has_same_serving_cartan(*quiver).first;
 				std::cout << (result ? "True: " : "False: ") << *quiver << std::cout.widen('\n');
 			}
 		}
+	} else if (function == Func::CheckSingle ) {
+		if(matrix.empty() || cartan.empty() ) {
+			usage();
+			return 4;
+		}
+		refl::check_compatible( cluster::QuiverMatrix{matrix}, cluster::QuiverMatrix{cartan} );
+	} else {
+		usage();
 	}
 	std::cout.flush();
 	return 0;
