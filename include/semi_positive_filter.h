@@ -26,8 +26,8 @@ public:
 	bool
 	operator()(arma::Mat<int> const& a);
 private:
-	arma::vec _eigens;
-	arma::mat _double_mat;
+	arma::Col<float> _eigens;
+	arma::Mat<float> _mat;
 };
 }
 #endif
