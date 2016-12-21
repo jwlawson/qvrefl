@@ -27,6 +27,7 @@
 #include "filtered_iterator.h"
 #include "cartan_equiv.h"
 #include "cartan_iterator.h"
+#include "cartan_mutator.h"
 #include "compatible_cartan.h"
 #include "mutation_star.h"
 #include "semi_positive_filter.h"
@@ -40,11 +41,12 @@ using MatrixVec = std::vector<arma::Mat<int>>;
 using UniqueCartanIter = FilteredIterator<CartanIterator, arma::Mat<int>, UniqueMatrixFilter>;
 using SemiPosIter = FilteredIterator<UniqueCartanIter, arma::Mat<int>, SemiPositiveFilter>;
 
-SemiPosIter
+auto
 get_cartan_iterator(cluster::QuiverMatrix const& q) {
 	CartanIterator cartan(q);
-	UniqueCartanIter unique(std::move(cartan));
-	return SemiPosIter(std::move(unique));
+	//UniqueCartanIter unique(std::move(cartan));
+	//return SemiPosIter(std::move(unique));
+	return UniqueCartanIter(std::move(cartan));
 }
 MatrixVec
 find_serving_cartans(cluster::QuiverMatrix const& q) {
@@ -57,10 +59,10 @@ find_serving_cartans(cluster::QuiverMatrix const& q) {
 
 	CompatibleCartan compatible;
 
-	SemiPosIter pos_iter = get_cartan_iterator(q);
+	auto cartan_iter = SemiPosIter(std::move(get_cartan_iterator(q)));
 
-	while(pos_iter.has_next() && !found.all()) {
-		arma::Mat<int> const& AQ = pos_iter.next();
+	while(cartan_iter.has_next() && !found.all()) {
+		arma::Mat<int> const& AQ = cartan_iter.next();
 		VectorMutator vmut(q, AQ);
 		int_fast16_t ncols = AQ.n_cols;
 		for(int_fast16_t i = 0; i < ncols; ++i) {
@@ -88,61 +90,83 @@ output_serving_cartans(cluster::QuiverMatrix const& q, std::ostream& os = std::c
 		}
 	}
 }
+/* Find the first semipositive cartan fully compatible with q */
 std::pair<bool, arma::Mat<int> >
-has_same_serving_cartan(cluster::QuiverMatrix const& q) {
+first_compatible_cartan(cluster::QuiverMatrix const& q) {
 	bool result = false;
 	arma::Mat<int> cartan;
 	const MutationStar star(q);
-	const arma::mat initial_vecs(q.num_rows(), q.num_cols(), arma::fill::eye);
-	arma::mat mutated_vecs(q.num_rows(), q.num_cols());
-	arma::mat gram_matrix(q.num_rows(), q.num_cols());
+	arma::Mat<int> gram_matrix(q.num_rows(), q.num_cols());
 
 	CompatibleCartan compatible;
 
-	SemiPosIter pos_iter = get_cartan_iterator(q);
+	auto cartan_iter = get_cartan_iterator(q);
+	SemiPositiveFilter semipos;
 
-	while(pos_iter.has_next() && !result) {
+	CartanMutator cmut( q );
+	while(cartan_iter.has_next() && !result) {
 		bool is_comp = true;
-		arma::Mat<int> const& AQ = pos_iter.next();
-		VectorMutator vmut(q, AQ);
+		arma::Mat<int> const& AQ = cartan_iter.next();
 		int_fast16_t ncols = AQ.n_cols;
 		for(int_fast16_t i = 0; is_comp && i < ncols; ++i) {
-			vmut.mutate(initial_vecs, i, mutated_vecs);
-			gram_matrix = util::gram(mutated_vecs, AQ);
+			cmut( AQ, i, gram_matrix );
 			is_comp = compatible(star.qv(i), gram_matrix);
 		}
-		result = is_comp;
+		result = is_comp && semipos( AQ );
 		if(result) {
 			cartan = AQ;
 		}
 	}
 	return {result, cartan};
 }
+/* Check if a semipositive cartan matrix is fully compatible with the quiver. */
 bool
 check_compatible(cluster::QuiverMatrix const& q,
 		arma::Mat<int> const& AQ, std::ostream& os = std::cout) {
 	bool result = true;
 	const MutationStar star(q);
-	const arma::mat initial_vecs(q.num_rows(), q.num_cols(), arma::fill::eye);
-	arma::mat mutated_vecs(q.num_rows(), q.num_cols());
-	arma::mat gram_matrix(q.num_rows(), q.num_cols());
+	arma::Mat<int> gram_matrix(q.num_rows(), q.num_cols());
 
 	CompatibleCartan compatible;
 	if(! compatible(q, AQ) ) {
 		os << "Initial matrix not compatible" << os.widen('\n');
 		result = false;
 	}
-	VectorMutator vmut(q, AQ);
+	CartanMutator cmut( q );
 	int_fast16_t ncols = AQ.n_cols;
 	for(int_fast16_t i = 0; i < ncols; ++i) {
-		vmut.mutate(initial_vecs, i, mutated_vecs);
-		gram_matrix = util::gram(mutated_vecs, AQ);
+		cmut( AQ, i, gram_matrix );
 		if(!compatible(star.qv(i), gram_matrix) ) {
 			os << "Mutation at " << i << " not compatible" << os.widen('\n');
 			result = false;
 		}
 	}
 	return result;
+}
+/* Check if a semipositive cartan matrix is fully compatible with the quiver. */
+bool
+repeat_check_compatible(cluster::QuiverMatrix const& q, MutationStar const& star,
+		arma::Mat<int> const& AQ) {
+	static arma::Mat<int> gram_matrix;
+	bool result = true;
+	gram_matrix.set_size(q.num_rows(), q.num_cols());
+
+	CompatibleCartan compatible;
+	result = compatible(q, AQ);
+
+	CartanMutator cmut( q );
+	int_fast16_t ncols = AQ.n_cols;
+	for(int_fast16_t i = 0; result && i < ncols; ++i) {
+		cmut( AQ, i, gram_matrix );
+		result = compatible(star.qv(i), gram_matrix);
+	}
+	return result;
+}
+/* Check if a semipositive cartan matrix is fully compatible with the quiver. */
+bool
+fast_check_compatible(cluster::QuiverMatrix const& q, arma::Mat<int> const& AQ) {
+	const MutationStar star(q);
+	return repeat_check_compatible(q, star, AQ);
 }
 bool
 check_compatible(cluster::QuiverMatrix const& q,
@@ -151,35 +175,46 @@ check_compatible(cluster::QuiverMatrix const& q,
 	bool result = check_compatible(q, AQ, os);
 	return result;
 }
-bool
-check_all_compatible_equiv(cluster::QuiverMatrix const& q, std::ostream& os = std::cout ) {
-	static class NullBuffer : public std::streambuf { public: int overflow(int c) { return c; } } null_buffer;
-	static std::ostream null_stream(&null_buffer);
-	SemiPosIter pos_iter = get_cartan_iterator(q);
-	bool result = pos_iter.has_next();
+std::vector<arma::Mat<int>>
+all_compatible(cluster::QuiverMatrix const& q) {
+	auto cartan_iter = get_cartan_iterator(q);
+	MutationStar const star(q);
 	CartanEquiv equiv;
+	SemiPositiveFilter semipos;
 
-	std::unique_ptr<arma::Mat<int>> first_cartan;
+	std::vector<arma::Mat<int>> result;
+	result.reserve( 2 );
+
 	do {
-		auto const& first = pos_iter.next();
-		if(check_compatible(q, first, null_stream)) {
-			first_cartan = std::make_unique<arma::Mat<int>>(first);
+		auto const& first = cartan_iter.next();
+		if(repeat_check_compatible(q, star, first) && semipos( first ) ) {
+			result.push_back(first);
 		}
-	} while (!first_cartan && pos_iter.has_next());
+	} while (result.empty() && cartan_iter.has_next());
 
-	if(first_cartan) {
-		while(pos_iter.has_next()) {
-			auto const& n = pos_iter.next();
-			if(check_compatible(q, n, null_stream) && !equiv(*first_cartan, n)) {
-				first_cartan->print(os, "Initial cartan:");
-				n.print(os, " not equivalent to:");
-				result = false;
+	if( !result.empty() ) {
+		while(cartan_iter.has_next()) {
+			auto const& n = cartan_iter.next();
+			if(repeat_check_compatible(q, star, n) && semipos( n )
+					&& std::find_if(result.begin(), result.end(),
+						[&n,&equiv](arma::Mat<int> const& c){ return equiv(c, n); } ) == result.end() )  {
+				result.push_back( n );
 			}
 		}
-	} else {
-		result = false;
 	}
 	return result;
+}
+bool
+check_all_compatible_equiv(cluster::QuiverMatrix const& q, std::ostream& os = std::cout ) {
+	auto compatible_cartans = all_compatible( q );
+	bool all_equiv = compatible_cartans.size() == 1;
+
+	if( !all_equiv ) {
+		for( auto const& n : compatible_cartans ) {
+			n.print(os, "Compatible:");
+		}
+	}
+	return all_equiv;
 }
 }
 }
@@ -279,12 +314,12 @@ main(int argc, char* argv[]) {
 				cluster::EquivMutationClassLoader cl(q);
 				while(cl.has_next()) {
 					auto quiver = cl.next_ptr();
-					bool result = refl::has_same_serving_cartan(*quiver).first;
+					bool result = refl::first_compatible_cartan(*quiver).first;
 					std::cout << (result ? "True: " : "False: ") << *quiver << std::cout.widen('\n');
 				}
 			} else {
 				cluster::QuiverMatrix q(matrix);
-				auto result = refl::has_same_serving_cartan(q);
+				auto result = refl::first_compatible_cartan(q);
 				std::cout << (result.first ? result.second : "False") << std::cout.widen('\n');
 			}
 		} else {
@@ -297,7 +332,7 @@ main(int argc, char* argv[]) {
 			cluster::StreamIterator<cluster::QuiverMatrix> iter(inf);
 			while(iter.has_next()) {
 				auto quiver = iter.next();
-				bool result = refl::has_same_serving_cartan(*quiver).first;
+				bool result = refl::first_compatible_cartan(*quiver).first;
 				std::cout << (result ? "True: " : "False: ") << *quiver << std::cout.widen('\n');
 			}
 		}
@@ -308,12 +343,26 @@ main(int argc, char* argv[]) {
 		}
 		refl::check_compatible( cluster::QuiverMatrix{matrix}, cluster::QuiverMatrix{cartan} );
 	} else if (function == Func::CompatibleEquiv) {
-		if(matrix.empty() ) {
+		if( !matrix.empty() ) {
+			std::cout << std::boolalpha << refl::check_all_compatible_equiv(
+					cluster::QuiverMatrix{matrix} ) << std::cout.widen('\n');
+		} else if ( !input.empty() ) {
+			std::ifstream inf;
+			inf.open(input);
+			if(!inf.is_open()) {
+				std::cerr << "Could not open file " << input << std::endl;
+				return 1;
+			}
+			cluster::StreamIterator<cluster::QuiverMatrix> iter(inf);
+			while(iter.has_next()) {
+				auto quiver = iter.next();
+				std::cout << std::boolalpha << refl::check_all_compatible_equiv( *quiver
+						) << ": " << *quiver << std::cout.widen('\n');
+			}
+		} else {
 			usage();
 			return 4;
 		}
-		std::cout << std::boolalpha << refl::check_all_compatible_equiv(
-				cluster::QuiverMatrix{matrix} ) << std::cout.widen('\n');
 	} else {
 		usage();
 	}
