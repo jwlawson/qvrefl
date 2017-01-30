@@ -24,33 +24,45 @@
 #include <deque>
 
 namespace refl {
+/**
+ * Determine whether two cartan matrices are equivalent up to simultaneous
+ * changes of signs in rows and columns.
+ *
+ * A Cartan matrix is symmetric, and this method assumes that. Only the lower
+ * triangle of the matrices is checked. The upper triangle is ignored.
+ */
 class CartanEquiv {
-public:
+ public:
   template <class elem_t>
-  bool operator()(arma::Mat<elem_t> const &lhs, arma::Mat<elem_t> const &rhs);
+  bool operator()(arma::Mat<elem_t> const& lhs, arma::Mat<elem_t> const& rhs);
 
-private:
+ private:
   boost::dynamic_bitset<> flipped;
   boost::dynamic_bitset<> undecided;
 
-  void flip(size_t rowcol, size_t nrows, size_t ncols);
+  void flip(size_t rowcol);
+  bool have_flipped(size_t row, size_t col) const;
 };
 
-#define RC2IND(row, col) col *nrows + row
+#define RC2IND(row, col) col* nrows + row
 
 template <class elem_t>
-bool CartanEquiv::operator()(arma::Mat<elem_t> const &lhs,
-                             arma::Mat<elem_t> const &rhs) {
+bool CartanEquiv::operator()(arma::Mat<elem_t> const& lhs,
+                             arma::Mat<elem_t> const& rhs) {
   size_t const nrows = lhs.n_rows;
-  size_t const ncols = lhs.n_cols;
-  bool result = nrows == rhs.n_rows && ncols == rhs.n_cols;
+  // As we only check the lower triangle, assume that there are at most as many
+  // columns as there are rows. In fact the matrices *should* be square.
+  size_t const ncols = std::min(static_cast<size_t>(lhs.n_cols), nrows);
+  bool result = nrows == rhs.n_rows && lhs.n_cols == rhs.n_cols;
   flipped.reset();
-  flipped.resize(nrows * ncols, false);
+  flipped.resize(nrows, false);
   undecided.reset();
   undecided.resize(nrows, false);
-  elem_t const *lptr = lhs.memptr();
-  elem_t const *rptr = rhs.memptr();
-  // Go down first column and determine which rows to flip.
+  elem_t const* lptr = lhs.memptr();
+  elem_t const* rptr = rhs.memptr();
+  // Go down first column and determine which rows to flip. We decide that the
+  // first column will be fixed, and so not flipped. We use this to determine
+  // which columns do need flipping.
   // For matrices without any zeros this will 'fix' any sign discrepancies
   // between the matrices if they are equivalent. However any zeros in the first
   // column make this more difficult as 0 == -0 and 0 == 0.
@@ -62,7 +74,7 @@ bool CartanEquiv::operator()(arma::Mat<elem_t> const &lhs,
       undecided.set(row);
     } else if (lval == -rval) {
       // Flip the signs in the row
-      flip(row, nrows, ncols);
+      flip(row);
     } else {
       result = (lval == rval);
     }
@@ -73,90 +85,87 @@ bool CartanEquiv::operator()(arma::Mat<elem_t> const &lhs,
   // to travel down the column starting with a zero to see if all entries in
   // that column can be flipped.
   //
-  // We do this in two sections, the upper triangle and then the lower triangle.
-  // For the upper triangle section we just check whether the values in the
-  // matrix need flipping, whereas in the lower triangle we also need to be
-  // aware that we could simultaneously flip both this current column and a
-  // column further in the matrix, so these possible future flips are tracked in
-  // simul_flip.
+  // Check each undecided column to determine whether it should be flipped. All
+  // previous columns have been fixed already, so we traverse the lower triangle
+  // of the matrices.
   for (col = 1; result && col < ncols; ++col) {
-    bool could_flip = undecided.test(col);
+    bool could_flip_col = undecided.test(col);
+    bool need_flip_col = false;
     std::vector<size_t> simul_flip;
-    for (size_t row = 1; could_flip && row < col; ++row) {
+    std::vector<size_t> rows_to_flip;
+    for (size_t row = col + 1; row < nrows; ++row) {
       elem_t const lval = lptr[RC2IND(row, col)];
       if (lval == 0) {
         continue;
       }
       elem_t const rval = rptr[RC2IND(row, col)];
-      bool already_flipped = flipped.test(RC2IND(col, row));
-      bool sign_matches = (already_flipped && lval == -rval) ||
-                          (!already_flipped && lval == rval);
-      if (sign_matches) {
-        // When checking the upper triangle, there can be no previous rows to
-        // flip (i.e. undecided.test(row) is always false).
-        could_flip = false;
+      if (rval == 0) {
+        result = false;
+        break;
       }
-    }
-    for (size_t row = col + 1; could_flip && row < nrows; ++row) {
-      elem_t const lval = lptr[RC2IND(row, col)];
-      if (lval == 0) {
-        continue;
-      }
-      elem_t const rval = rptr[RC2IND(row, col)];
-      bool already_flipped = flipped.test(RC2IND(row, col));
-      bool sign_matches = (already_flipped && lval == -rval) ||
-                          (!already_flipped && lval == rval);
+      bool already_flipped = have_flipped(row, col);
+      bool equal = (lval == rval);
+      bool switched = (lval == -rval);
+      result = (equal || switched);
+      bool sign_matches =
+          (already_flipped && switched) || (!already_flipped && equal);
       if (!sign_matches) {
         // Then need to flip either the row or the column
+        if (undecided.test(row)) {
+          rows_to_flip.push_back(row);
+        } else {
+          // Can't flip row, so need to flip column
+          need_flip_col = true;
+        }
       } else if (undecided.test(row)) {
-        // Don't need to flip, but could if we flip both the row and column
+        // Don't need to flip, but if we do flip the column, then we also need
+        // to flip the row
         simul_flip.push_back(row);
       } else {
-        // Don't need to flip
-        could_flip = false;
+        // Shouldn't flip the column
+        could_flip_col = false;
       }
     }
-    if (could_flip) {
-      flip(col, nrows, ncols);
+    if (could_flip_col) {
+      flip(col);
       // Then also flip everything in simul_flip
-      for (auto sflip = simul_flip.begin(), end = simul_flip.end();
-           sflip != end; ++sflip) {
-        size_t to_flip = *sflip;
-        flip(to_flip, nrows, ncols);
+      for (auto to_flip : simul_flip) {
+        flip(to_flip);
         undecided.reset(to_flip);
+      }
+      // As we flipped col, cannot also flip the rows in rows_to_flip
+      for (auto row : rows_to_flip) {
+        undecided.reset(row);
+      }
+    } else {
+      if (need_flip_col) {
+        // Needed to flip col, but couldn't
+        result = false;
+      } else {
+        // Didn't flip the column, so cannot flip the simul flip rows
+        for (auto to_flip : simul_flip) {
+          undecided.reset(to_flip);
+        }
+        // As we don't flip the column, we know which rows we *do* need to flip
+        for (auto to_flip : rows_to_flip) {
+          flip(to_flip);
+          undecided.reset(to_flip);
+        }
       }
     }
     // Note: don't need to call undecided.reset(col) as we will now move past it
     // and any later undecided rows just assume that previous ones have been
     // handled.
   }
-  // At this point all flips have been decided, so run through the matrix and
-  // check that everything matches up.
-  //
-  // We could include some of this checking in the above, so that the code can
-  // fail faster, but that probably will cause it to be even more inpenetrable.
-  for (col = 1; result && col < ncols; ++col) {
-    for (size_t row = col + 1; result && row < nrows; ++row) {
-      elem_t const lval = lptr[RC2IND(row, col)];
-      elem_t const rval = rptr[RC2IND(row, col)];
-      if (lval == 0 && rval == 0) {
-        continue;
-      }
-      bool already_flipped = flipped.test(RC2IND(row, col));
-      result = (already_flipped && lval == -rval) ||
-               (!already_flipped && lval == rval);
-    }
-  }
-
   return result;
 }
-void CartanEquiv::flip(size_t rowcol, size_t nrows, size_t ncols) {
-  for (size_t second = 1; second < rowcol; ++second) {
-    flipped.flip(RC2IND(rowcol, second));
-  }
-  for (size_t first = rowcol + 1; first < ncols; ++first) {
-    flipped.flip(RC2IND(first, rowcol));
-  }
+void CartanEquiv::flip(size_t rowcol) {
+  flipped.flip(rowcol);
+}
+bool CartanEquiv::have_flipped(size_t row, size_t col) const {
+  bool rval = flipped.test(row);
+  bool cval = flipped.test(col);
+  return rval != cval;
 }
 #undef RC2IND
 }

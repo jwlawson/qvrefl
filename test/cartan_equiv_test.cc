@@ -323,4 +323,167 @@ TEST(CartanEquiv, NeedSimultaneosFlip) {
   EXPECT_TRUE(equiv(a, e));
   EXPECT_TRUE(equiv(e, a));
 }
+TEST(CartanEquiv, TrickyUnknowns) {
+  arma::Mat<int> a{{2, 0, 1, 1, 0, 0, 0, 0},
+                   {0, 2, 1, 1, 0, 0, 0, 0},
+                   {1, 1, 2, 1, 0, 0, 1, 0},
+                   {1, 1, 1, 2, 0, 0, 1, 0},
+                   {0, 0, 0, 0, 2, 0, 1, 1},
+                   {0, 0, 0, 0, 0, 2, 1, 1},
+                   {0, 0, 1, 1, 1, 1, 2, 1},
+                   {0, 0, 0, 0, 1, 1, 1, 2}};
+
+  arma::Mat<int> e{{2, 0, 1, 1, 0, 0, 0, 0},
+                   {0, 2, 1, 1, 0, 0, 0, 0},
+                   {1, 1, 2, 1, 0, 0, -1, 0},
+                   {1, 1, 1, 2, 0, 0, -1, 0},
+                   {0, 0, 0, 0, 2, 0, -1, 1},
+                   {0, 0, 0, 0, 0, 2, -1, 1},
+                   {0, 0, -1, -1, -1, -1, 2, -1},
+                   {0, 0, 0, 0, 1, 1, -1, 2}};
+  CartanEquiv equiv;
+
+  EXPECT_TRUE(equiv(a, e));
+  EXPECT_TRUE(equiv(e, a));
+}
+TEST(CartanEquiv, TrickyUnknownsA) {
+  arma::Mat<int> a{{2, 0, 0, 0, 0},
+                   {0, 2, 0, 1, 1},
+                   {0, 0, 2, 1, 1},
+                   {0, 1, 1, 2, 1},
+                   {0, 1, 1, 1, 2}};
+
+  arma::Mat<int> e{{2, 0, 0, 0, 0},
+                   {0, 2, 0, -1, 1},
+                   {0, 0, 2, -1, 1},
+                   {0, -1, -1, 2, -1},
+                   {0, 1, 1, -1, 2}};
+  CartanEquiv equiv;
+
+  EXPECT_TRUE(equiv(a, e));
+  EXPECT_TRUE(equiv(e, a));
+}
+TEST(CartanEquiv, TrickyUnknownsB) {
+  arma::Mat<int> a{{2, 0, 0, 0, 0},
+                   {0, 2, 0, 1, 0},
+                   {0, 0, 2, 1, 1},
+                   {0, 1, 1, 2, 1},
+                   {0, 0, 1, 1, 2}};
+
+  arma::Mat<int> e{{2, 0, 0, 0, 0},
+                   {0, 2, 0, -1, 0},
+                   {0, 0, 2, -1, 1},
+                   {0, -1, -1, 2, -1},
+                   {0, 0, 1, -1, 2}};
+  CartanEquiv equiv;
+
+  EXPECT_TRUE(equiv(a, e));
+  EXPECT_TRUE(equiv(e, a));
+}
+TEST(CartanEquiv, TrickyUnknownsC) {
+  arma::Mat<int> a{{2, 0, 0, 0, 0},
+                   {0, 2, 0, 1, 0},
+                   {0, 0, 2, 1, 0},
+                   {0, 1, 1, 2, 1},
+                   {0, 0, 0, 1, 2}};
+
+  arma::Mat<int> e{{2, 0, 0, 0, 0},
+                   {0, 2, 0, -1, 0},
+                   {0, 0, 2, -1, 0},
+                   {0, -1, -1, 2, -1},
+                   {0, 0, 0, -1, 2}};
+  CartanEquiv equiv;
+
+  EXPECT_TRUE(equiv(a, e));
+  EXPECT_TRUE(equiv(e, a));
+}
+TEST(CartanEquiv, TrickyUnknownsD) {
+  arma::Mat<int> a{{2, 1, 1, 0, 0, 0, 0},
+                   {1, 2, 1, 0, 0, 1, 0},
+                   {1, 1, 2, 0, 0, 1, 0},
+                   {0, 0, 0, 2, 0, 1, 1},
+                   {0, 0, 0, 0, 2, 1, 1},
+                   {0, 1, 1, 1, 1, 2, 1},
+                   {0, 0, 0, 1, 1, 1, 2}};
+
+  arma::Mat<int> e{{2, 1, 1, 0, 0, 0, 0},
+                   {1, 2, 1, 0, 0, -1, 0},
+                   {1, 1, 2, 0, 0, -1, 0},
+                   {0, 0, 0, 2, 0, -1, 1},
+                   {0, 0, 0, 0, 2, -1, 1},
+                   {0, -1, -1, -1, -1, 2, -1},
+                   {0, 0, 0, 1, 1, -1, 2}};
+  CartanEquiv equiv;
+
+  EXPECT_TRUE(equiv(a, e));
+  EXPECT_TRUE(equiv(e, a));
+}
+TEST(CartanEquiv, TrickyUnknownsE) {
+  arma::Mat<int> a{{2, 1, 1, 0, 0, 0},
+                   {1, 2, 1, 0, 1, 0},
+                   {1, 1, 2, 0, 1, 0},
+                   {0, 0, 0, 2, 1, 1},
+                   {0, 1, 1, 1, 2, 1},
+                   {0, 0, 0, 1, 1, 2}};
+
+  arma::Mat<int> e{{2, 1, 1, 0, 0, 0},
+                   {1, 2, 1, 0, -1, 0},
+                   {1, 1, 2, 0, -1, 0},
+                   {0, 0, 0, 2, -1, 1},
+                   {0, -1, -1, -1, 2, -1},
+                   {0, 0, 0, 1, -1, 2}};
+  CartanEquiv equiv;
+
+  EXPECT_TRUE(equiv(a, e));
+  EXPECT_TRUE(equiv(e, a));
+}
+TEST(CartanEquiv, TrickyUnknownsF) {
+  arma::Mat<int> a{{2, 1, 0, 0, 0},
+                   {1, 2, 0, 1, 0},
+                   {0, 0, 2, 1, 1},
+                   {0, 1, 1, 2, 1},
+                   {0, 0, 1, 1, 2}};
+
+  arma::Mat<int> e{{2,  1,  0,  0,  0},
+                   {1,  2,  0, -1,  0},
+                   {0,  0,  2, -1,  1},
+                   {0, -1, -1,  2, -1},
+                   {0,  0,  1, -1,  2}};
+  CartanEquiv equiv;
+
+  EXPECT_TRUE(equiv(a, e));
+  EXPECT_TRUE(equiv(e, a));
+}
+TEST(CartanEquiv, TrickyUnknownsG) {
+  arma::Mat<int> a{{2, 0, 0, 0},
+                   {0, 2, 1, 1},
+                   {0, 1, 2, 1},
+                   {0, 1, 1, 2}};
+
+  arma::Mat<int> e{{2, 0, 0, 0},
+                   {0, 2, -1, 1},
+                   {0, -1, 2, -1},
+                   {0, 1, -1, 2}};
+  CartanEquiv equiv;
+
+  EXPECT_TRUE(equiv(a, e));
+  EXPECT_TRUE(equiv(e, a));
+}
+TEST(CartanEquiv, AllZeros) {
+  arma::Mat<int> a{{2, 0, 0, 0, 0},
+                   {0, 2, 0, 0, 0},
+                   {0, 0, 2, 0, 0},
+                   {0, 0, 0, 2, 0},
+                   {0, 0, 0, 0, 2}};
+
+  arma::Mat<int> e{{2, 0, 0, 0, 0},
+                   {0, 2, 0, 0, 0},
+                   {0, 0, 2, 0, 0},
+                   {0, 0, 0, 2, 0},
+                   {0, 0, 0, 0, 2}};
+  CartanEquiv equiv;
+
+  EXPECT_TRUE(equiv(a, e));
+  EXPECT_TRUE(equiv(e, a));
+}
 }
