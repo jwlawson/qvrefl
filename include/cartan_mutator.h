@@ -34,7 +34,7 @@ public:
 private:
   cluster::QuiverMatrix const &m_quiver;
 };
-
+inline
 CartanMutator::CartanMutator(cluster::QuiverMatrix const &q) : m_quiver(q) {}
 
 template <class elem_t>
