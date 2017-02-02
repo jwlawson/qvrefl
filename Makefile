@@ -22,10 +22,10 @@ uname_M := $(shell sh -c 'uname -m 2>/dev/null || echo not')
 uname_O := $(shell sh -c 'uname -o 2>/dev/null || echo not')
 
 ifeq ($(uname_O),Cygwin)
-	CXXFLAGS += -std=gnu++14 -DCYGWIN_STOI
+	CXXFLAGS += -std=gnu++1z -DCYGWIN_STOI
 endif
 ifeq ($(uname_S),Linux)
-	CXXFLAGS += -std=c++14
+	CXXFLAGS += -std=c++1z
 endif
 
 TEST = test$(NAME)
@@ -49,24 +49,27 @@ TEST_LIBS = $(LIBS) -lgtest -lgtest_main -lboost_system -pthread
 MAIN = $(SRC_DIR)/qvrefl.cc
 CARTAN = $(SRC_DIR)/cartan.cc
 BENCH = $(SRC_DIR)/benchmark.cc
-SRCS = $(filter-out $(MAIN) $(BENCH) $(CARTAN), $(wildcard $(SRC_DIR)/*.cc))
+CMUT = $(SRC_DIR)/cmut.cc
+SRCS = $(filter-out $(MAIN) $(BENCH) $(CARTAN) $(CMUT), $(wildcard $(SRC_DIR)/*.cc))
 TEST_SRCS = $(wildcard $(TEST_DIR)/*.cc)
 
 _OBJS = $(SRCS:.cc=.o)
 _M_OBJ = $(MAIN:.cc=.o)
 _B_OBJ = $(BENCH:.cc=.o)
 _C_OBJ = $(CARTAN:.cc=.o)
+_CM_OBJ = $(CMUT:.cc=.o)
 _TEST_OBJS = $(TEST_SRCS:.cc=.o)
 
 OBJS = $(patsubst $(SRC_DIR)/%,$(OBJ_DIR)/%,$(_OBJS))
 M_OBJ = $(patsubst $(SRC_DIR)/%,$(OBJ_DIR)/%,$(_M_OBJ))
 B_OBJ = $(patsubst $(SRC_DIR)/%,$(OBJ_DIR)/%,$(_B_OBJ))
 C_OBJ = $(patsubst $(SRC_DIR)/%,$(OBJ_DIR)/%,$(_C_OBJ))
+CM_OBJ = $(patsubst $(SRC_DIR)/%,$(OBJ_DIR)/%,$(_CM_OBJ))
 TEST_OBJS = $(patsubst $(TEST_DIR)/%,$(OBJ_DIR)/%,$(_TEST_OBJS))
 
 .PHONY: clean all test depend
 
-all:	$(NAME)
+all:	$(NAME) cartan cmut
 
 $(NAME): $(M_OBJ) $(OBJS)
 	$(CXX) $(CXXFLAGS) $(OPT) $(INCLUDES) -o $(NAME) $(M_OBJ) $(OBJS) $(LFLAGS) $(LIBS)
@@ -81,6 +84,9 @@ bench: $(B_OBJ) $(OBJS)
 
 cartan: $(C_OBJ) $(OBJS)
 	$(CXX) $(CXXFLAGS) $(OPT) $(INCLUDES) -o cartan $(C_OBJ) $(OBJS) $(LFLAGS) $(LIBS)
+
+cmut: $(CM_OBJ) $(OBJS)
+	$(CXX) $(CXXFLAGS) $(OPT) $(INCLUDES) -o cmut $(CM_OBJ) $(OBJS) $(LFLAGS) $(LIBS)
 
 test: $(TEST)
 	@echo Running tests
