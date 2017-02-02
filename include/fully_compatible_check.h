@@ -32,5 +32,13 @@ struct FullyCompatibleCheck {
                   MutationStar const& star,
                   arma::Mat<int> const& cartan);
 };
+struct FixedQuiverFullyCompatibleCheck {
+	FixedQuiverFullyCompatibleCheck(cluster::QuiverMatrix q);
+  bool operator()(arma::Mat<int> const& cartan);
+private:
+	cluster::QuiverMatrix quiver;
+	MutationStar star;
+	FullyCompatibleCheck check;
+};
 }
 #endif

@@ -27,4 +27,11 @@ bool FullyCompatibleCheck::operator()(cluster::QuiverMatrix const& q,
   const MutationStar star(q);
   return operator()(q, star, AQ);
 }
+FixedQuiverFullyCompatibleCheck::FixedQuiverFullyCompatibleCheck(cluster::QuiverMatrix q)
+	: quiver(std::move(q))
+	, star(quiver)
+	, check() {}
+bool FixedQuiverFullyCompatibleCheck::operator()(arma::Mat<int> const& cartan) {
+	return check(quiver, star, cartan);
+}
 }

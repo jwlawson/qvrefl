@@ -30,6 +30,7 @@ class FilteredIterator {
 public:
 	/** Create an iterator which filters the provided iterator. */
 	FilteredIterator(It && it);
+	FilteredIterator(It && it, Filter filter);
 	/**
 	 * Check whether the iterator will return a valid output on the next call of
 	 * next()
@@ -59,6 +60,16 @@ FilteredIterator<It, Output, Filter, positive>::FilteredIterator(It && it)
 		_result(),
 		_next(),
 		_filter(),
+		_got_next{true} {
+	get_next();
+}
+template <class It, class Output, class Filter, bool positive>
+inline
+FilteredIterator<It, Output, Filter, positive>::FilteredIterator(It && it, Filter filter)
+	: _it(std::move(it)),
+		_result(),
+		_next(),
+		_filter(std::move(filter)),
 		_got_next{true} {
 	get_next();
 }
