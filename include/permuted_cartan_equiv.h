@@ -1,5 +1,5 @@
 /**
- * cartan_equiv.h
+ * permuted_cartan_equiv.h
  * Copyright 2016 John Lawson
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -15,8 +15,8 @@
  * limitations under the License.
  */
 #pragma once
-#ifndef REFL_CARTAN_EQUIV_H__
-#define REFL_CARTAN_EQUIV_H__
+#ifndef REFL_PERMUTED_CARTAN_EQUIV_H__
+#define REFL_PERMUTED_CARTAN_EQUIV_H__
 
 #include <armadillo>
 #include <boost/dynamic_bitset.hpp>
@@ -30,26 +30,40 @@ namespace refl {
  *
  * A Cartan matrix is symmetric, and this method assumes that. Only the lower
  * triangle of the matrices is checked. The upper triangle is ignored.
+ *
+ * This class differs from CartanEquiv by allowing the second matrix to be
+ * permuted, for example comparing two Cartan matrices of equivalent quivers.
+ * TODO: Combine the two equivalence checks. This code is almost identical.
  */
-class CartanEquiv {
+class PermutedCartanEquiv {
+  typedef std::vector<int> Permutation;
+
  public:
   template <class elem_t>
-  bool operator()(arma::Mat<elem_t> const& lhs, arma::Mat<elem_t> const& rhs);
+  bool operator()(arma::Mat<elem_t> const& lhs,
+                  arma::Mat<elem_t> const& rhs,
+                  Permutation const& perm);
 
  private:
   boost::dynamic_bitset<> flipped;
   boost::dynamic_bitset<> undecided;
+  Permutation permutation;
 
   /** Mark the specified row/col as flipped */
   void flip(size_t rowcol);
   /** Check whether the value at (row, col) has been flipped. */
   bool have_flipped(size_t row, size_t col) const;
-	/* Get value from matrix at index (row, col) */
+  /* Get value from matrix at index (row, col) */
   template <class elem_t>
   elem_t get_val(elem_t const* const ptr,
-               size_t const row,
-               size_t const col,
-               size_t const nrows) const;
+                 size_t const row,
+                 size_t const col,
+                 size_t const nrows) const;
+  template <class elem_t>
+  elem_t get_permuted_val(elem_t const* const ptr,
+                          size_t const row,
+                          size_t const col,
+                          size_t const nrows) const;
 
   /**
    * Assume that the first column will not have its sign flipped, then proceed
@@ -77,13 +91,15 @@ class CartanEquiv {
                          size_t const nrows);
 };
 template <class elem_t>
-bool CartanEquiv::operator()(arma::Mat<elem_t> const& lhs,
-                             arma::Mat<elem_t> const& rhs) {
+bool PermutedCartanEquiv::operator()(arma::Mat<elem_t> const& lhs,
+                                     arma::Mat<elem_t> const& rhs,
+                                     Permutation const& perm) {
   size_t const nrows = lhs.n_rows;
   // As we only check the lower triangle, assume that there are at most as many
   // columns as there are rows. In fact the matrices *should* be square.
   size_t const ncols = std::min(static_cast<size_t>(lhs.n_cols), nrows);
   bool result = nrows == rhs.n_rows && lhs.n_cols == rhs.n_cols;
+  permutation = perm;
   flipped.reset();
   flipped.resize(nrows, false);
   undecided.reset();
@@ -98,16 +114,23 @@ bool CartanEquiv::operator()(arma::Mat<elem_t> const& lhs,
   return result;
 }
 template <class elem_t>
-elem_t CartanEquiv::get_val(elem_t const* const ptr,
-                          size_t const row,
-                          size_t const col,
-                          size_t const nrows) const {
+elem_t PermutedCartanEquiv::get_permuted_val(elem_t const* const ptr,
+                                             size_t const row,
+                                             size_t const col,
+                                             size_t const nrows) const {
+  return ptr[permutation[col] * nrows + permutation[row]];
+}
+template <class elem_t>
+elem_t PermutedCartanEquiv::get_val(elem_t const* const ptr,
+                                    size_t const row,
+                                    size_t const col,
+                                    size_t const nrows) const {
   return ptr[col * nrows + row];
 }
-void inline CartanEquiv::flip(size_t rowcol) {
+void inline PermutedCartanEquiv::flip(size_t rowcol) {
   flipped.flip(rowcol);
 }
-bool inline CartanEquiv::have_flipped(size_t row, size_t col) const {
+bool inline PermutedCartanEquiv::have_flipped(size_t row, size_t col) const {
   bool rval = flipped.test(row);
   bool cval = flipped.test(col);
   return rval != cval;
@@ -119,15 +142,15 @@ bool inline CartanEquiv::have_flipped(size_t row, size_t col) const {
 // between the matrices if they are equivalent. However any zeros in the first
 // column make this more difficult as 0 == -0 and 0 == 0.
 template <class elem_t>
-bool CartanEquiv::check_first_column(elem_t const* const lptr,
-                                     elem_t const* const rptr,
-                                     size_t const nrows) {
+bool PermutedCartanEquiv::check_first_column(elem_t const* const lptr,
+                                             elem_t const* const rptr,
+                                             size_t const nrows) {
   size_t col = 0;
   bool result = true;
 
   for (size_t row = 1; result && row < nrows; ++row) {
     elem_t const lval = get_val(lptr, row, col, nrows);
-    elem_t const rval = get_val(rptr, row, col, nrows);
+    elem_t const rval = get_permuted_val(rptr, row, col, nrows);
     if (lval == 0 && rval == 0) {
       undecided.set(row);
     } else if (lval == -rval) {
@@ -148,10 +171,10 @@ bool CartanEquiv::check_first_column(elem_t const* const lptr,
 // previous columns have been fixed already, so we traverse the lower triangle
 // of the matrices.
 template <class elem_t>
-bool CartanEquiv::check_next_column(size_t const col,
-                                    elem_t const* const lptr,
-                                    elem_t const* const rptr,
-                                    size_t const nrows) {
+bool PermutedCartanEquiv::check_next_column(size_t const col,
+                                            elem_t const* const lptr,
+                                            elem_t const* const rptr,
+                                            size_t const nrows) {
   bool result = true;
   bool could_flip_col = undecided.test(col);
   bool need_flip_col = false;
@@ -159,7 +182,7 @@ bool CartanEquiv::check_next_column(size_t const col,
   std::vector<size_t> rows_to_flip;
   for (size_t row = col + 1; row < nrows; ++row) {
     elem_t const lval = get_val(lptr, row, col, nrows);
-    elem_t const rval = get_val(rptr, row, col, nrows);
+    elem_t const rval = get_permuted_val(rptr, row, col, nrows);
     if (lval == 0 && rval == 0) {
       continue;
     } else if (lval == 0 || rval == 0) {
