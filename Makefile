@@ -14,6 +14,7 @@ CXXFLAGS += -fno-signed-zeros -fno-math-errno -fno-rounding-math
 CXXFLAGS += -fno-signaling-nans -fno-trapping-math
 CXXFLAGS += -ffinite-math-only -Wno-misleading-indentation
 OPT += -Ofast
+AR = gcc-ar
 endif
 CXXFLAGS += -DARMA_DONT_USE_WRAPPER -DARMA_NO_DEBUG -DNDEBUG
 
@@ -29,6 +30,10 @@ ifeq ($(uname_S),Linux)
 endif
 
 TEST = test$(NAME)
+
+LIB = lib$(NAME).so.$(VERSION)
+STATIC = lib$(NAME).a
+LDFLAGS = -shared -Wl,-soname,$(LIB)
 
 BASE_DIR = .
 SRC_DIR = $(BASE_DIR)/src
@@ -75,6 +80,17 @@ TEST_OBJS = $(patsubst $(TEST_DIR)/%,$(OBJ_DIR)/%,$(_TEST_OBJS))
 
 all:	$(BINS)
 
+lib:	$(LIB)
+static:	$(STATIC)
+
+$(LIB): CXXFLAGS+=-fPIC
+$(LIB):	$(OBJS)
+	$(CXX) $(LDFLAGS) -o $@ $^
+
+$(STATIC): OPT += -flto -fuse-linker-plugin -ffat-lto-objects
+$(STATIC): $(OBJS)
+	$(AR) rcs $(STATIC) $(OBJS)
+
 $(NAME): $(M_OBJ) $(OBJS)
 	$(CXX) $(CXXFLAGS) $(OPT) $(INCLUDES) -o $(NAME) $(M_OBJ) $(OBJS) $(LFLAGS) $(LIBS)
 
@@ -113,6 +129,17 @@ $(M_OBJ): | $(OBJ_DIR)
 
 $(OBJ_DIR):
 	mkdir -p $(OBJ_DIR)
+
+install:	$(LIB)
+	cp $(LIB) $(PREFIX)/lib
+	ldconfig -v -n $(PREFIX)/lib
+	ln -fs $(PREFIX)/lib/$(LIB) $(PREFIX)/lib/lib$(NAME).so
+	mkdir -p $(PREFIX)/include/$(NAME)
+	cp -ru include/* $(PREFIX)/include/$(NAME)/
+
+uninstall:
+	rm $(PREFIX)/lib/lib$(NAME).*
+	rm -r $(PREFIX)/include/$(NAME)
 
 clean:
 	$(RM) *.o *~ $(OBJ_DIR)/*.o $(TEST) bench $(BINS)
