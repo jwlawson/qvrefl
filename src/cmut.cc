@@ -38,19 +38,28 @@ State insert_quiver(Map& map, int index, Quiver q, arma::Mat<int> cartan) {
   return insert_quiver(map, q, std::move(info));
 }
 
-int main() {
+int main(int argc, char* argv[]) {
   Map map;
-  std::string quiver_str =
+	std::string quiver_str;
+	if(argc > 1) {
+		quiver_str = argv[1];
+	} else {
+		quiver_str =
       "{ { 0 1 1 0 -1 -1 }"
       "  { -1 0 -1 1 0 1 }"
       "  { -1 1 0 -1 1 0 }"
       "  { 0 -1 1 0 1 -1 }"
       "  { 1 0 -1 -1 0 1 }"
       "  { 1 -1 0 1 -1 0 } }";
+	}
   Quiver initial(quiver_str);
   refl::CompatibleCartanIterator cartans(initial);
   CartanInfo initial_info{0, {}};
 
+	if(!cartans.has_next()) {
+		std::cout << "Quiver has no fully compatible cartans!\n";
+		return 1;
+	}
   while (cartans.has_next()) {
     initial_info.cartans.push_back(cartans.next());
   }
