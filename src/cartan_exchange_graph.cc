@@ -23,6 +23,17 @@ bool Equiv::operator()(CartanQuiver const* const lhs,
     auto permutation = check->last_row_map();
     PermutedCartanEquiv equiv;
     result = equiv(lhs->cartan, rhs->cartan, permutation);
+    if (!result) {
+      // valid_row_maps assumes the matrices are equivalent, so we do need the
+      // equivalent check above before we can check all permutations.
+      auto all_perms = check->valid_row_maps(lhs->quiver, rhs->quiver);
+      for (auto permutation : *all_perms) {
+        result = equiv(lhs->cartan, rhs->cartan, permutation);
+        if (result) {
+          break;
+        }
+      }
+    }
   }
   return result;
 }

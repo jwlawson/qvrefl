@@ -92,7 +92,7 @@ cartan: $(C_OBJ) $(OBJS)
 cmut: $(CM_OBJ) $(OBJS)
 	$(CXX) $(CXXFLAGS) $(OPT) $(INCLUDES) -o cmut $(CM_OBJ) $(OBJS) $(LFLAGS) $(LIBS)
 
-cexch: $(CM_OBJ) $(OBJS)
+cexch: $(CE_OBJ) $(OBJS)
 	$(CXX) $(CXXFLAGS) $(OPT) $(INCLUDES) -o cexch $(CE_OBJ) $(OBJS) $(LFLAGS) $(LIBS)
 
 test: $(TEST)
@@ -115,7 +115,7 @@ $(OBJ_DIR):
 	mkdir -p $(OBJ_DIR)
 
 clean:
-	$(RM) *.o *~ $(OBJ_DIR)/*.o $(NAME) $(TEST)
+	$(RM) *.o *~ $(OBJ_DIR)/*.o $(TEST) bench $(BINS)
 
 depend: $(SRCS)
 	makedepend $(INCLUDES) $^

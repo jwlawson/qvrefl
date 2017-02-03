@@ -25,7 +25,7 @@ int main() {
 	refl::CartanExchangeGraph graph(initial, m.num_rows());
 
 	for(auto pair : graph) {
-		refl::cartan_exchange::CartanQuiver quiver = *pair.first;
+		refl::cartan_exchange::CartanQuiver const& quiver = *pair.first;
 		std::cout << quiver.quiver << '\n';
 		quiver.cartan.print();
 		std::cout << std::boolalpha << quiver.fully_compatible << "\n\n";
