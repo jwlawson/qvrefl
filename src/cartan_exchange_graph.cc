@@ -6,12 +6,12 @@
 
 namespace refl {
 namespace cartan_exchange {
-void Mutator::operator()(CartanQuiver const& initial,
+void Mutator::operator()(CartanQuiver const* const initial,
                          size_t k,
                          CartanQuiver& output) const {
-  initial.quiver.mutate(k, output.quiver);
-  CartanMutator cmut(initial.quiver);
-  cmut(initial.cartan, k, output.cartan);
+  initial->quiver.mutate(k, output.quiver);
+  CartanMutator cmut(initial->quiver);
+  cmut(initial->cartan, k, output.cartan);
   FixedQuiverFullyCompatibleCheck comp(output.quiver);
   output.fully_compatible = comp(output.cartan);
 }

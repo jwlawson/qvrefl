@@ -46,11 +46,13 @@ LFLAGS = -L$(HOME)/lib -L$(BASE_DIR) -L$(BASE_DIR)/lib
 LIBS = -lopenblas -lqv
 TEST_LIBS = $(LIBS) -lgtest -lgtest_main -lboost_system -pthread
 
+BINS = qvrefl cartan cmut cexch
 MAIN = $(SRC_DIR)/qvrefl.cc
 CARTAN = $(SRC_DIR)/cartan.cc
 BENCH = $(SRC_DIR)/benchmark.cc
 CMUT = $(SRC_DIR)/cmut.cc
-SRCS = $(filter-out $(MAIN) $(BENCH) $(CARTAN) $(CMUT), $(wildcard $(SRC_DIR)/*.cc))
+CEXCH = $(SRC_DIR)/cexch.cc
+SRCS = $(filter-out $(MAIN) $(BENCH) $(CARTAN) $(CMUT) $(CEXCH), $(wildcard $(SRC_DIR)/*.cc))
 TEST_SRCS = $(wildcard $(TEST_DIR)/*.cc)
 
 _OBJS = $(SRCS:.cc=.o)
@@ -58,6 +60,7 @@ _M_OBJ = $(MAIN:.cc=.o)
 _B_OBJ = $(BENCH:.cc=.o)
 _C_OBJ = $(CARTAN:.cc=.o)
 _CM_OBJ = $(CMUT:.cc=.o)
+_CE_OBJ = $(CEXCH:.cc=.o)
 _TEST_OBJS = $(TEST_SRCS:.cc=.o)
 
 OBJS = $(patsubst $(SRC_DIR)/%,$(OBJ_DIR)/%,$(_OBJS))
@@ -65,11 +68,12 @@ M_OBJ = $(patsubst $(SRC_DIR)/%,$(OBJ_DIR)/%,$(_M_OBJ))
 B_OBJ = $(patsubst $(SRC_DIR)/%,$(OBJ_DIR)/%,$(_B_OBJ))
 C_OBJ = $(patsubst $(SRC_DIR)/%,$(OBJ_DIR)/%,$(_C_OBJ))
 CM_OBJ = $(patsubst $(SRC_DIR)/%,$(OBJ_DIR)/%,$(_CM_OBJ))
+CE_OBJ = $(patsubst $(SRC_DIR)/%,$(OBJ_DIR)/%,$(_CE_OBJ))
 TEST_OBJS = $(patsubst $(TEST_DIR)/%,$(OBJ_DIR)/%,$(_TEST_OBJS))
 
 .PHONY: clean all test depend
 
-all:	$(NAME) cartan cmut
+all:	$(BINS)
 
 $(NAME): $(M_OBJ) $(OBJS)
 	$(CXX) $(CXXFLAGS) $(OPT) $(INCLUDES) -o $(NAME) $(M_OBJ) $(OBJS) $(LFLAGS) $(LIBS)
@@ -87,6 +91,9 @@ cartan: $(C_OBJ) $(OBJS)
 
 cmut: $(CM_OBJ) $(OBJS)
 	$(CXX) $(CXXFLAGS) $(OPT) $(INCLUDES) -o cmut $(CM_OBJ) $(OBJS) $(LFLAGS) $(LIBS)
+
+cexch: $(CM_OBJ) $(OBJS)
+	$(CXX) $(CXXFLAGS) $(OPT) $(INCLUDES) -o cexch $(CE_OBJ) $(OBJS) $(LFLAGS) $(LIBS)
 
 test: $(TEST)
 	@echo Running tests

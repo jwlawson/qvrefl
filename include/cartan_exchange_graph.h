@@ -16,7 +16,7 @@ struct CartanQuiver {
   bool fully_compatible;
 };
 struct Mutator {
-  void operator()(CartanQuiver const& initial,
+  void operator()(CartanQuiver const* const initial,
                   size_t k,
                   CartanQuiver& output) const;
 };
