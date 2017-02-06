@@ -13,7 +13,7 @@ CXXFLAGS += -Wall -Wextra -march=native
 CXXFLAGS += -fno-signed-zeros -fno-math-errno -fno-rounding-math
 CXXFLAGS += -fno-signaling-nans -fno-trapping-math
 CXXFLAGS += -ffinite-math-only -Wno-misleading-indentation
-OPT += -Ofast
+OPT = -g -Ofast
 AR = gcc-ar
 endif
 CXXFLAGS += -DARMA_DONT_USE_WRAPPER -DARMA_NO_DEBUG -DNDEBUG

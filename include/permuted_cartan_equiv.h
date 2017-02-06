@@ -47,7 +47,7 @@ class PermutedCartanEquiv {
  private:
   boost::dynamic_bitset<> flipped;
   boost::dynamic_bitset<> undecided;
-  Permutation permutation;
+  Permutation const* permutation;
 
   /** Mark the specified row/col as flipped */
   void flip(size_t rowcol);
@@ -99,7 +99,7 @@ bool PermutedCartanEquiv::operator()(arma::Mat<elem_t> const& lhs,
   // columns as there are rows. In fact the matrices *should* be square.
   size_t const ncols = std::min(static_cast<size_t>(lhs.n_cols), nrows);
   bool result = nrows == rhs.n_rows && lhs.n_cols == rhs.n_cols;
-  permutation = perm;
+  permutation = &perm;
   flipped.reset();
   flipped.resize(nrows, false);
   undecided.reset();
@@ -118,7 +118,7 @@ elem_t PermutedCartanEquiv::get_permuted_val(elem_t const* const ptr,
                                              size_t const row,
                                              size_t const col,
                                              size_t const nrows) const {
-  return ptr[permutation[col] * nrows + permutation[row]];
+  return ptr[permutation->at(col) * nrows + permutation->at(row)];
 }
 template <class elem_t>
 elem_t PermutedCartanEquiv::get_val(elem_t const* const ptr,
@@ -212,7 +212,7 @@ bool PermutedCartanEquiv::check_next_column(size_t const col,
       could_flip_col = false;
     }
   }
-  if (could_flip_col) {
+  if (could_flip_col && need_flip_col) {
     flip(col);
     // Then also flip everything in simul_flip
     for (auto to_flip : simul_flip) {

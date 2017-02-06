@@ -27,4 +27,23 @@ TEST(CartanExchangeGraph, NotFullyCompatible) {
 	EXPECT_EQ(12, n_verts);
 	EXPECT_EQ(8, n_comp);
 }
+TEST(CartanExchangeGraph, EquivCheck) {
+	std::string str = "{ { 0 1 0 0 0 } { -1 0 0 0 -1 } {  0 0 0 1 0 } { 0 0 -1 0 1 } { 0 1 0 -1 0 } }";
+
+	cluster::EquivQuiverMatrix m(str);
+	arma::Mat<int> cartan = {2, 1, 0, 0, 0, 1, 2, 0, 0, 1, 0, 0, 2, 1, 0, 0, 0, 1, 2, 1, 0, 1, 0, 1, 2};
+	cartan.reshape(5, 5);
+
+	refl::cartan_exchange::CartanQuiver quiv1{ m, cartan, true};
+	refl::cartan_exchange::CartanQuiver quiv2{ m, cartan, true};
+
+	refl::cartan_exchange::Hash hash;
+	size_t hash1 = hash(&quiv1);
+	size_t hash2 = hash(&quiv2);
+	EXPECT_EQ(hash1, hash2);
+
+	refl::cartan_exchange::Equiv equiv;
+	EXPECT_TRUE(equiv(&quiv1, &quiv2));
+
+}
 }

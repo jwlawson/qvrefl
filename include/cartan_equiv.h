@@ -90,7 +90,7 @@ bool CartanEquiv::operator()(arma::Mat<elem_t> const& lhs,
   undecided.resize(nrows, false);
   elem_t const* lptr = lhs.memptr();
   elem_t const* rptr = rhs.memptr();
-  result = check_first_column(lptr, rptr, nrows);
+  result = result && check_first_column(lptr, rptr, nrows);
 
   for (size_t col = 1; result && col < ncols; ++col) {
     result = check_next_column(col, lptr, rptr, nrows);
@@ -189,7 +189,7 @@ bool CartanEquiv::check_next_column(size_t const col,
       could_flip_col = false;
     }
   }
-  if (could_flip_col) {
+  if (could_flip_col && need_flip_col) {
     flip(col);
     // Then also flip everything in simul_flip
     for (auto to_flip : simul_flip) {
