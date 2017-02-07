@@ -20,8 +20,7 @@
 
 namespace refl {
 MutationStar::MutationStar(cluster::QuiverMatrix const& q) 
-	: _initial(q), 
-		_qv_vector(q.num_cols(), cluster::QuiverMatrix(q.num_rows(), q.num_cols())),
+	: _qv_vector(q.num_cols(), cluster::QuiverMatrix(q.num_rows(), q.num_cols())),
 		_mat_vector() {
 	_mat_vector.reserve(q.num_cols());
 	for(int_fast16_t i = 0; i < q.num_cols(); ++i) {

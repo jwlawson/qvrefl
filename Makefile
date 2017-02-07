@@ -4,11 +4,19 @@ MINOR = 1
 VERSION = $(MAJOR).$(MINOR)
 
 ifeq ($(CXX),icpc)
-CXXFLAGS += -Wall -xHOST
-OPT += -O3 -ipo
-B_OPT += $(OPT)
+CXXFLAGS = -Wall -xHOST
+OPT = -O3 -ipo -no-prec-div
 AR = xiar
-else
+endif
+ifeq ($(CXX),clang++)
+CXXFLAGS += -Wall -Wextra -Werror -march=native -Wno-unused-parameter\
+CXXFLAGS += -fno-signed-zeros -fno-math-errno
+CXXFLAGS += -fno-trapping-math
+CXXFLAGS += -ffinite-math-only
+OPT = -Ofast
+AR = ar
+endif
+ifeq ($(CXX),g++)
 CXXFLAGS += -Wall -Wextra -march=native
 CXXFLAGS += -fno-signed-zeros -fno-math-errno -fno-rounding-math
 CXXFLAGS += -fno-signaling-nans -fno-trapping-math
@@ -16,17 +24,17 @@ CXXFLAGS += -ffinite-math-only -Wno-misleading-indentation
 OPT = -g -Ofast
 AR = gcc-ar
 endif
-CXXFLAGS += -DARMA_DONT_USE_WRAPPER -DARMA_NO_DEBUG -DNDEBUG
+override CXXFLAGS += -DARMA_DONT_USE_WRAPPER -DARMA_NO_DEBUG -DNDEBUG
 
 uname_S := $(shell sh -c 'uname -s 2>/dev/null || echo not')
 uname_M := $(shell sh -c 'uname -m 2>/dev/null || echo not')
 uname_O := $(shell sh -c 'uname -o 2>/dev/null || echo not')
 
 ifeq ($(uname_O),Cygwin)
-	CXXFLAGS += -std=gnu++1z -DCYGWIN_STOI
+override CXXFLAGS += -std=gnu++1z -DCYGWIN_STOI
 endif
 ifeq ($(uname_S),Linux)
-	CXXFLAGS += -std=c++1z
+override CXXFLAGS += -std=c++1z
 endif
 
 TEST = test$(NAME)

@@ -59,7 +59,7 @@ find_serving_cartans(cluster::QuiverMatrix const& q) {
 
 	CompatibleCartan compatible;
 
-	auto cartan_iter = SemiPosIter(std::move(get_cartan_iterator(q)));
+	auto cartan_iter = SemiPosIter(get_cartan_iterator(q));
 
 	while(cartan_iter.has_next() && !found.all()) {
 		arma::Mat<int> const& AQ = cartan_iter.next();

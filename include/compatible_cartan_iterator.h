@@ -34,7 +34,7 @@ SemiPosIter Get(cluster::QuiverMatrix const& q) {
  */
 struct CompatibleCartanIterator : compatible_cartan_iter::SemiPosIter {
 	CompatibleCartanIterator(cluster::QuiverMatrix const& q) :
-		compatible_cartan_iter::SemiPosIter(std::move(compatible_cartan_iter::Get(q))) {}
+		compatible_cartan_iter::SemiPosIter(compatible_cartan_iter::Get(q)) {}
 	using compatible_cartan_iter::SemiPosIter::has_next;
 	using compatible_cartan_iter::SemiPosIter::next;
 };

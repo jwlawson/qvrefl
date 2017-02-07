@@ -40,8 +40,15 @@ CartanMutator::CartanMutator(cluster::QuiverMatrix const &q) : m_quiver(q) {}
 template <class elem_t>
 void CartanMutator::operator()(arma::Mat<elem_t> const &cartan, uint_fast16_t k,
                                arma::Mat<elem_t> &output) {
-  static constexpr auto sgn = [](auto const &x) { return x < 0 ? -1 : 1; };
-  static constexpr auto min0 = [](auto const &x) { return x < 0 ? 0 : x; };
+#ifdef __cpp_constexpr
+#  if __cpp_constexpr >= 201603
+#    define CONSTEXPR_LAMBDA constexpr
+#  else
+#    define CONSTEXPR_LAMBDA
+#  endif
+#endif
+  static CONSTEXPR_LAMBDA auto sgn = [](auto const &x) { return x < 0 ? -1 : 1; };
+  static CONSTEXPR_LAMBDA auto min0 = [](auto const &x) { return x < 0 ? 0 : x; };
   output.set_size(arma::size(cartan));
   uint_fast16_t max = cartan.n_rows;
   for (uint_fast16_t col = 0; col < max; ++col) {
@@ -64,6 +71,7 @@ void CartanMutator::operator()(arma::Mat<elem_t> const &cartan, uint_fast16_t k,
       }
     }
   }
+#undef CONSTEXPR_LAMBDA
 }
 }
 #endif

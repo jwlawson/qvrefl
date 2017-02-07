@@ -43,7 +43,6 @@ public:
 	arma::Mat<int> const&
 	arma(uint_fast16_t k) const;
 private:
-	cluster::QuiverMatrix const& _initial;
 	std::vector<cluster::QuiverMatrix> _qv_vector;
 	std::vector<arma::Mat<int>> _mat_vector;
 };
