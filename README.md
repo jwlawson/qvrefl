@@ -31,15 +31,23 @@ This program finds which, if any of the semi-positive definite (i.e. all
 eigenvalues are non-negative) quasi-Cartan matrices of a given quiver serve its
 vertices.
 
-### Usage
+
+### qvrefl
+
+##### Usage
 
 ```
-qvrefl -m matrix [-h]
-  -m Specify the matrix used to find quasi-Cartan companions
-	-h Show this usage information
+qvrefl -cels [-m matrix] [-i in_file] [-a cartan]
+  -m Specify matrix to find quasi-Cartan companions of
+  -i Specify input file of matrices to read
+  -c Check the whole mutation class of the matrix
+  -e Check that all compatible cartans are equivalent
+  -l List the first quasi-Cartan serving each vertex
+  -s Check if there is a quasi-Cartan serving all vertices
+  -a Specify a cartan matrix to check whether it serves every vertex
 ```
 
-### Output
+##### Output
 
 The program will compute which semi-positive quasi-Cartan companion serves each
 vertex of the provided quiver matrix. The output is then the first matrix it
@@ -67,9 +75,34 @@ Example:
         0        1        1        2
 ```
 
+### cmut
+`cmut` provides an interactive way of mutating quivers and their cartan
+companions.
+
+##### Usage
+Run the program via the terminal. The input matrix should be specified as
+expected by the `qv` library.
+
+```
+cmut [matrix]
+```
+
+Then the program waits for an input:
+```
+q: quit
+s: show the current quiver and cartan
+1-9: mutate specified vertex
+```
+
+### cexch
+Small proof of concept program to show the cartan companions of a whole mutation
+class. The initial quiver is provided at compile time, not runtime.
+
 ### Build
 
-Run `make` to build `qvrefl`. To build and run the unit tests use `make test`.
+Run `make` to build all binaries. To build and run the unit tests use `make test`.
+A library containing the various math units can be built with `make lib` or
+`make static` for a dynamic or static library respectively.
 
 ##### Dependencies
 
