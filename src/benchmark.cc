@@ -9,7 +9,7 @@ static void CartanEquivSameCheck(benchmark::State &state) {
   refl::CartanEquiv equiv;
 
   while (state.KeepRunning()) {
-    volatile bool test = equiv(a, a);
+    ::benchmark::DoNotOptimize(equiv(a, a));
   }
 }
 BENCHMARK(CartanEquivSameCheck);
@@ -21,7 +21,7 @@ static void CartanEquivOneSwitch(benchmark::State &state) {
   refl::CartanEquiv equiv;
 
   while (state.KeepRunning()) {
-    volatile bool test = equiv(a, b);
+    ::benchmark::DoNotOptimize(equiv(a, a));
   }
 }
 BENCHMARK(CartanEquivOneSwitch);
@@ -33,7 +33,7 @@ static void CartanEquivTwoSwitch(benchmark::State &state) {
   refl::CartanEquiv equiv;
 
   while (state.KeepRunning()) {
-    volatile bool test = equiv(a, d);
+    ::benchmark::DoNotOptimize(equiv(a, a));
   }
 }
 BENCHMARK(CartanEquivTwoSwitch);

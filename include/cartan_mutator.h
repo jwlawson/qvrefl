@@ -23,32 +23,38 @@
 #include "qv/quiver_matrix.h"
 
 namespace refl {
+
 class CartanMutator {
-public:
+ public:
   CartanMutator(cluster::QuiverMatrix const &quiver);
 
   template <class elem_t>
   void operator()(arma::Mat<elem_t> const &cartan, uint_fast16_t k,
                   arma::Mat<elem_t> &output);
 
-private:
+ private:
   cluster::QuiverMatrix const &m_quiver;
 };
-inline
-CartanMutator::CartanMutator(cluster::QuiverMatrix const &q) : m_quiver(q) {}
+
+inline CartanMutator::CartanMutator(cluster::QuiverMatrix const &q)
+    : m_quiver(q) {}
 
 template <class elem_t>
 void CartanMutator::operator()(arma::Mat<elem_t> const &cartan, uint_fast16_t k,
                                arma::Mat<elem_t> &output) {
 #ifdef __cpp_constexpr
-#  if __cpp_constexpr >= 201603
-#    define CONSTEXPR_LAMBDA constexpr
-#  else
-#    define CONSTEXPR_LAMBDA
-#  endif
+#if __cpp_constexpr >= 201603
+#define CONSTEXPR_LAMBDA constexpr
+#else
+#define CONSTEXPR_LAMBDA
 #endif
-  static CONSTEXPR_LAMBDA auto sgn = [](auto const &x) { return x < 0 ? -1 : 1; };
-  static CONSTEXPR_LAMBDA auto min0 = [](auto const &x) { return x < 0 ? 0 : x; };
+#endif
+  static CONSTEXPR_LAMBDA auto sgn = [](auto const &x) {
+    return x < 0 ? -1 : 1;
+  };
+  static CONSTEXPR_LAMBDA auto min0 = [](auto const &x) {
+    return x < 0 ? 0 : x;
+  };
   output.set_size(arma::size(cartan));
   uint_fast16_t max = cartan.n_rows;
   for (uint_fast16_t col = 0; col < max; ++col) {
@@ -57,7 +63,7 @@ void CartanMutator::operator()(arma::Mat<elem_t> const &cartan, uint_fast16_t k,
       output.at(row, col) = output.at(col, row);
     }
     output.at(row, col) = 2;
-		++row;
+    ++row;
     for (; row < max; ++row) {
       if (col == k) {
         output.at(row, col) = sgn(m_quiver.get(row, k)) * cartan.at(row, k);
@@ -73,5 +79,7 @@ void CartanMutator::operator()(arma::Mat<elem_t> const &cartan, uint_fast16_t k,
   }
 #undef CONSTEXPR_LAMBDA
 }
-}
-#endif
+
+}  // namespace refl
+
+#endif  // REFL_CARTAN_MUTATOR_H__

@@ -1,4 +1,5 @@
 cmake_minimum_required(VERSION 3.5)
+project(qvrefl)
 
 find_package(Boost REQUIRED)
 find_package(BLAS REQUIRED)
@@ -13,6 +14,17 @@ if(Boost_FOUND AND NOT TARGET Boost::boost)
   )
 endif()
 
+if(Armadillo_FOUND AND NOT TARGET Arma::arma)
+  add_library(Arma::arma UNKNOWN IMPORTED)
+  set_target_properties(Arma::arma PROPERTIES
+    IMPORTED_LOCATION ${ARMADILLO_LIBRARIES}
+    INTERFACE_INCLUDE_DIRS ${ARMADILLO_INCLUDE_DIRS}
+  )
+endif()
+
+list(APPEND CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/cmake/")
+include(QVReflHelpers)
+
 set(_source_dir src)
 set(_sources
   ${_source_dir}/cartan.cc
@@ -26,33 +38,33 @@ set(_sources
   ${_source_dir}/util.cc
 )
 
-add_library(refl ${_sources})
-target_link_libraries(refl
-  PUBLIC Boost::boost
-         QV::qv
-         ${BLAS_LINKER_FLAGS} ${BLAS_LIBRARIES}
-         ${ARMADILLO_LIBRARIES}
-)
-target_include_directories(refl
-  PUBLIC ${ARMADILLO_INCLUDE_DIRS}
-  PRIVATE ${CMAKE_SOURCE_DIR}/include
+qv_library(TARGET refl
+  SOURCES ${_sources}
+  PUBLIC_LIBRARIES Boost::boost
+                   QV::qv
+                   Arma::arma
+                   ${BLAS_LINKER_FLAGS} ${BLAS_LIBRARIES}
 )
 
-add_executable(qvrefl ${_source_dir}/qvrefl.cc)
-target_link_libraries(qvrefl PUBLIC refl)
-target_include_directories(qvrefl PRIVATE ${CMAKE_SOURCE_DIR}/include)
+qv_executable(TARGET qvrefl
+  SOURCES ${_source_dir}/qvrefl.cc
+  PUBLIC_LIBRARIES refl
+)
 
-add_executable(cexch ${_source_dir}/cexch.cc)
-target_link_libraries(cexch PUBLIC refl)
-target_include_directories(cexch PRIVATE ${CMAKE_SOURCE_DIR}/include)
+qv_executable(TARGET cexch
+  SOURCES ${_source_dir}/cexch.cc
+  PUBLIC_LIBRARIES refl
+)
 
-add_executable(cmut ${_source_dir}/cmut.cc)
-target_link_libraries(cmut PUBLIC refl)
-target_include_directories(cmut PRIVATE ${CMAKE_SOURCE_DIR}/include)
+qv_executable(TARGET cmut
+  SOURCES ${_source_dir}/cmut.cc
+  PUBLIC_LIBRARIES refl
+)
 
 if(benchmark_FOUND)
-  add_executable(benchmark ${_source_dir}/benchmark.cc)
-  target_link_libraries(benchmark PUBLIC refl benchmark::benchmark)
-  target_include_directories(benchmark PRIVATE ${CMAKE_SOURCE_DIR}/include)
+  qv_executable(TARGET benchmark
+    SOURCES ${_source_dir}/benchmark.cc
+    PUBLIC_LIBRARIES refl benchmark::benchmark
+  )
 endif()
 
