@@ -108,7 +108,11 @@ function(qv_test)
   qv_executable(TARGET            ${QV_TEST_TARGET}
                 SOURCES           ${QV_TEST_SOURCES}
                 PUBLIC_LIBRARIES  ${QV_TEST_PUBLIC_LIBRARIES}
-                PRIVATE_LIBRARIES GTest::GTest GTest::Main qv)
+                PRIVATE_LIBRARIES GTest::GTest
+                                  GTest::Main
+                                  QV::qv
+                                  refl
+  )
   add_test(NAME    ${QV_TEST_TARGET}
            COMMAND ${QV_TEST_TARGET})
 endfunction()

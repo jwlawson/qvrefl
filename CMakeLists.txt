@@ -68,3 +68,8 @@ if(benchmark_FOUND)
   )
 endif()
 
+find_package(GTest)
+if(GTest_FOUND)
+  enable_testing()
+  add_subdirectory(test)
+endif()
