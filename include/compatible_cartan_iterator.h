@@ -15,28 +15,33 @@
 
 namespace refl {
 namespace compatible_cartan_iter {
-using UniqueCartanIter = FilteredIterator<CartanIterator, arma::Mat<int>, UniqueMatrixFilter>;
-using NonEquivCartanIter = FilteredIterator<UniqueCartanIter, arma::Mat<int>, UniqueCartanFilter>;
-using CompatibleIter = FilteredIterator<NonEquivCartanIter, arma::Mat<int>, FixedQuiverFullyCompatibleCheck>;
-using SemiPosIter = FilteredIterator<CompatibleIter, arma::Mat<int>, SemiPositiveFilter>;
-SemiPosIter Get(cluster::QuiverMatrix const& q) {
-	CartanIterator ci(q);
-	UniqueCartanIter un(std::move(ci));
-	NonEquivCartanIter nequ(std::move(un));
-	FixedQuiverFullyCompatibleCheck chk(q);
-	CompatibleIter comp(std::move(nequ), std::move(chk));
-	return SemiPosIter(std::move(comp));
+using UniqueCartanIter =
+    FilteredIterator<CartanIterator, arma::Mat<int>, UniqueMatrixFilter>;
+using NonEquivCartanIter =
+    FilteredIterator<UniqueCartanIter, arma::Mat<int>, UniqueCartanFilter>;
+using CompatibleIter = FilteredIterator<NonEquivCartanIter, arma::Mat<int>,
+                                        FixedQuiverFullyCompatibleCheck>;
+using SemiPosIter =
+    FilteredIterator<CompatibleIter, arma::Mat<int>, SemiPositiveFilter>;
+SemiPosIter
+Get(cluster::QuiverMatrix const& q) {
+  CartanIterator ci(q);
+  UniqueCartanIter un(std::move(ci));
+  NonEquivCartanIter nequ(std::move(un));
+  FixedQuiverFullyCompatibleCheck chk(q);
+  CompatibleIter comp(std::move(nequ), std::move(chk));
+  return SemiPosIter(std::move(comp));
 }
-}
+}  // namespace compatible_cartan_iter
 /**
  * An iterator which provides semipositive compatible quasi-cartan companions
  * for a given quiver.
  */
 struct CompatibleCartanIterator : compatible_cartan_iter::SemiPosIter {
-	CompatibleCartanIterator(cluster::QuiverMatrix const& q) :
-		compatible_cartan_iter::SemiPosIter(compatible_cartan_iter::Get(q)) {}
-	using compatible_cartan_iter::SemiPosIter::has_next;
-	using compatible_cartan_iter::SemiPosIter::next;
+  CompatibleCartanIterator(cluster::QuiverMatrix const& q)
+      : compatible_cartan_iter::SemiPosIter(compatible_cartan_iter::Get(q)) {}
+  using compatible_cartan_iter::SemiPosIter::has_next;
+  using compatible_cartan_iter::SemiPosIter::next;
 };
-}
+}  // namespace refl
 #endif

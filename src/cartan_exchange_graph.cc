@@ -6,17 +6,18 @@
 
 namespace refl {
 namespace cartan_exchange {
-void Mutator::operator()(CartanQuiver const* const initial,
-                         size_t k,
-                         CartanQuiver& output) const {
+void
+Mutator::operator()(CartanQuiver const* const initial, size_t k,
+                    CartanQuiver& output) const {
   initial->quiver.mutate(k, output.quiver);
   CartanMutator cmut(initial->quiver);
   cmut(initial->cartan, k, output.cartan);
   FixedQuiverFullyCompatibleCheck comp(output.quiver);
   output.fully_compatible = comp(output.cartan);
 }
-bool Equiv::operator()(CartanQuiver const* const lhs,
-                       CartanQuiver const* const rhs) const {
+bool
+Equiv::operator()(CartanQuiver const* const lhs,
+                  CartanQuiver const* const rhs) const {
   auto check = cluster::EquivalenceChecker::Get(lhs->quiver.num_rows());
   bool result = check->are_equivalent(lhs->quiver, rhs->quiver);
   if (result) {
@@ -37,20 +38,24 @@ bool Equiv::operator()(CartanQuiver const* const lhs,
   }
   return result;
 }
-bool Equal::operator()(CartanQuiver const* const lhs,
-                       CartanQuiver const* const rhs) const {
+bool
+Equal::operator()(CartanQuiver const* const lhs,
+                  CartanQuiver const* const rhs) const {
   return cluster::IntMatrix::are_equal(lhs->quiver, rhs->quiver);
 }
-size_t Hash::operator()(CartanQuiver const* const quiver) const {
+size_t
+Hash::operator()(CartanQuiver const* const quiver) const {
   return quiver->quiver.hash();
 }
-CartanQuiver* NewInstance::operator()(size_t const size) const {
+CartanQuiver*
+NewInstance::operator()(size_t const size) const {
   return new CartanQuiver{cluster::EquivQuiverMatrix(size, size),
                           arma::Mat<int>(size, size), false};
 }
-bool DontMutateNonCompatible::operator()(CartanQuiver const* const mptr,
-                                         int /*vertex*/) const {
+bool
+DontMutateNonCompatible::operator()(CartanQuiver const* const mptr,
+                                    int /*vertex*/) const {
   return mptr->fully_compatible;
 }
-}
-}
+}  // namespace cartan_exchange
+}  // namespace refl

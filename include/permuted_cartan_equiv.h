@@ -40,8 +40,7 @@ class PermutedCartanEquiv {
 
  public:
   template <class elem_t>
-  bool operator()(arma::Mat<elem_t> const& lhs,
-                  arma::Mat<elem_t> const& rhs,
+  bool operator()(arma::Mat<elem_t> const& lhs, arma::Mat<elem_t> const& rhs,
                   Permutation const& perm);
 
  private:
@@ -55,15 +54,11 @@ class PermutedCartanEquiv {
   bool have_flipped(size_t row, size_t col) const;
   /* Get value from matrix at index (row, col) */
   template <class elem_t>
-  elem_t get_val(elem_t const* const ptr,
-                 size_t const row,
-                 size_t const col,
+  elem_t get_val(elem_t const* const ptr, size_t const row, size_t const col,
                  size_t const nrows) const;
   template <class elem_t>
-  elem_t get_permuted_val(elem_t const* const ptr,
-                          size_t const row,
-                          size_t const col,
-                          size_t const nrows) const;
+  elem_t get_permuted_val(elem_t const* const ptr, size_t const row,
+                          size_t const col, size_t const nrows) const;
 
   /**
    * Assume that the first column will not have its sign flipped, then proceed
@@ -74,8 +69,7 @@ class PermutedCartanEquiv {
    * @return Whether the given column of both matrices are equivalent
    */
   template <class elem_t>
-  bool check_first_column(elem_t const* const lptr,
-                          elem_t const* const rptr,
+  bool check_first_column(elem_t const* const lptr, elem_t const* const rptr,
                           size_t const nrows);
   /**
    * Now need to travserse down another column to determine whether this column,
@@ -85,15 +79,14 @@ class PermutedCartanEquiv {
    * @return Whether the given column of both matrices are equivalent
    */
   template <class elem_t>
-  bool check_next_column(size_t const col,
-                         elem_t const* const lptr,
-                         elem_t const* const rptr,
-                         size_t const nrows);
+  bool check_next_column(size_t const col, elem_t const* const lptr,
+                         elem_t const* const rptr, size_t const nrows);
 };
 template <class elem_t>
-bool PermutedCartanEquiv::operator()(arma::Mat<elem_t> const& lhs,
-                                     arma::Mat<elem_t> const& rhs,
-                                     Permutation const& perm) {
+bool
+PermutedCartanEquiv::operator()(arma::Mat<elem_t> const& lhs,
+                                arma::Mat<elem_t> const& rhs,
+                                Permutation const& perm) {
   size_t const nrows = lhs.n_rows;
   // As we only check the lower triangle, assume that there are at most as many
   // columns as there are rows. In fact the matrices *should* be square.
@@ -114,22 +107,19 @@ bool PermutedCartanEquiv::operator()(arma::Mat<elem_t> const& lhs,
   return result;
 }
 template <class elem_t>
-elem_t PermutedCartanEquiv::get_permuted_val(elem_t const* const ptr,
-                                             size_t const row,
-                                             size_t const col,
-                                             size_t const nrows) const {
+elem_t
+PermutedCartanEquiv::get_permuted_val(elem_t const* const ptr, size_t const row,
+                                      size_t const col,
+                                      size_t const nrows) const {
   return ptr[permutation->at(col) * nrows + permutation->at(row)];
 }
 template <class elem_t>
-elem_t PermutedCartanEquiv::get_val(elem_t const* const ptr,
-                                    size_t const row,
-                                    size_t const col,
-                                    size_t const nrows) const {
+elem_t
+PermutedCartanEquiv::get_val(elem_t const* const ptr, size_t const row,
+                             size_t const col, size_t const nrows) const {
   return ptr[col * nrows + row];
 }
-void inline PermutedCartanEquiv::flip(size_t rowcol) {
-  flipped.flip(rowcol);
-}
+void inline PermutedCartanEquiv::flip(size_t rowcol) { flipped.flip(rowcol); }
 bool inline PermutedCartanEquiv::have_flipped(size_t row, size_t col) const {
   bool rval = flipped.test(row);
   bool cval = flipped.test(col);
@@ -142,9 +132,10 @@ bool inline PermutedCartanEquiv::have_flipped(size_t row, size_t col) const {
 // between the matrices if they are equivalent. However any zeros in the first
 // column make this more difficult as 0 == -0 and 0 == 0.
 template <class elem_t>
-bool PermutedCartanEquiv::check_first_column(elem_t const* const lptr,
-                                             elem_t const* const rptr,
-                                             size_t const nrows) {
+bool
+PermutedCartanEquiv::check_first_column(elem_t const* const lptr,
+                                        elem_t const* const rptr,
+                                        size_t const nrows) {
   size_t col = 0;
   bool result = true;
 
@@ -171,10 +162,11 @@ bool PermutedCartanEquiv::check_first_column(elem_t const* const lptr,
 // previous columns have been fixed already, so we traverse the lower triangle
 // of the matrices.
 template <class elem_t>
-bool PermutedCartanEquiv::check_next_column(size_t const col,
-                                            elem_t const* const lptr,
-                                            elem_t const* const rptr,
-                                            size_t const nrows) {
+bool
+PermutedCartanEquiv::check_next_column(size_t const col,
+                                       elem_t const* const lptr,
+                                       elem_t const* const rptr,
+                                       size_t const nrows) {
   bool result = true;
   bool could_flip_col = undecided.test(col);
   bool need_flip_col = false;
@@ -244,5 +236,5 @@ bool PermutedCartanEquiv::check_next_column(size_t const col,
   // handled.
   return result;
 }
-}
+}  // namespace refl
 #endif

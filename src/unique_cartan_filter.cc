@@ -5,9 +5,9 @@
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- * 
+ *
  *     http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -19,13 +19,14 @@
 namespace refl {
 bool
 UniqueCartanFilter::operator()(arma::Mat<int> const& m) {
-	auto equiv= [&m,this](arma::Mat<int> const& other) {return _equiv_check(m, other);};
-	bool not_found = std::find_if(_matrices.begin(), _matrices.end(), equiv) == _matrices.end();
-	if(not_found) {
-		_matrices.push_back(m);
-	}
-	return not_found;
+  auto equiv = [&m, this](arma::Mat<int> const& other) {
+    return _equiv_check(m, other);
+  };
+  bool not_found = std::find_if(_matrices.begin(), _matrices.end(), equiv) ==
+                   _matrices.end();
+  if (not_found) {
+    _matrices.push_back(m);
+  }
+  return not_found;
 }
-}
-
-
+}  // namespace refl

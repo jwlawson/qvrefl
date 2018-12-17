@@ -28,17 +28,17 @@ namespace refl {
 struct FullyCompatibleCheck {
   bool operator()(cluster::QuiverMatrix const& quiver,
                   arma::Mat<int> const& cartan);
-  bool operator()(cluster::QuiverMatrix const& quiver,
-                  MutationStar const& star,
+  bool operator()(cluster::QuiverMatrix const& quiver, MutationStar const& star,
                   arma::Mat<int> const& cartan);
 };
 struct FixedQuiverFullyCompatibleCheck {
-	FixedQuiverFullyCompatibleCheck(cluster::QuiverMatrix q);
+  FixedQuiverFullyCompatibleCheck(cluster::QuiverMatrix q);
   bool operator()(arma::Mat<int> const& cartan);
-private:
-	cluster::QuiverMatrix quiver;
-	MutationStar star;
-	FullyCompatibleCheck check;
+
+ private:
+  cluster::QuiverMatrix quiver;
+  MutationStar star;
+  FullyCompatibleCheck check;
 };
-}
+}  // namespace refl
 #endif

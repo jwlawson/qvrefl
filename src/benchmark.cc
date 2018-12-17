@@ -4,7 +4,8 @@
 #include "cartan_mutator.h"
 #include "vector_mutator.h"
 
-static void CartanEquivSameCheck(benchmark::State &state) {
+static void
+CartanEquivSameCheck(benchmark::State& state) {
   arma::Mat<int> a{{2, 1, 1, 1}, {1, 2, 1, 1}, {1, 1, 2, 1}, {1, 1, 1, 2}};
   refl::CartanEquiv equiv;
 
@@ -14,7 +15,8 @@ static void CartanEquivSameCheck(benchmark::State &state) {
 }
 BENCHMARK(CartanEquivSameCheck);
 
-static void CartanEquivOneSwitch(benchmark::State &state) {
+static void
+CartanEquivOneSwitch(benchmark::State& state) {
   arma::Mat<int> a{{2, 1, 1, 1}, {1, 2, 1, 1}, {1, 1, 2, 1}, {1, 1, 1, 2}};
   arma::Mat<int> b{
       {2, -1, -1, -1}, {-1, 2, 1, 1}, {-1, 1, 2, 1}, {-1, 1, 1, 2}};
@@ -26,7 +28,8 @@ static void CartanEquivOneSwitch(benchmark::State &state) {
 }
 BENCHMARK(CartanEquivOneSwitch);
 
-static void CartanEquivTwoSwitch(benchmark::State &state) {
+static void
+CartanEquivTwoSwitch(benchmark::State& state) {
   arma::Mat<int> a{{2, 1, 1, 1}, {1, 2, 1, 1}, {1, 1, 2, 1}, {1, 1, 1, 2}};
   arma::Mat<int> d{
       {2, 1, -1, -1}, {1, 2, -1, -1}, {-1, -1, 2, 1}, {-1, -1, 1, 2}};
@@ -38,7 +41,8 @@ static void CartanEquivTwoSwitch(benchmark::State &state) {
 }
 BENCHMARK(CartanEquivTwoSwitch);
 
-static void CartanMutatorA3(benchmark::State &state) {
+static void
+CartanMutatorA3(benchmark::State& state) {
   cluster::QuiverMatrix a3{"{ { 0 1 -1 } { -1 0 1 } { 1 -1 0 } }"};
   arma::Mat<int> a{{2, 1, 1}, {1, 2, 1}, {1, 1, 2}};
   refl::CartanMutator mut(a3);
@@ -51,7 +55,8 @@ static void CartanMutatorA3(benchmark::State &state) {
 }
 BENCHMARK(CartanMutatorA3);
 
-static void CartanMutatorA4(benchmark::State &state) {
+static void
+CartanMutatorA4(benchmark::State& state) {
   cluster::QuiverMatrix a4{
       "{ { 0 1 0 0 } { -1 0 1 0 } { 0 -1 0 1 0 } { 0 0 -1 0 } }"};
   arma::Mat<int> a{{2, 1, 1, 1}, {1, 2, 1, 1}, {1, 1, 2, 1}, {1, 1, 1, 2}};
@@ -65,9 +70,11 @@ static void CartanMutatorA4(benchmark::State &state) {
 }
 BENCHMARK(CartanMutatorA4);
 
-static void CartanMutatorA5(benchmark::State &state) {
-  cluster::QuiverMatrix a5{"{ { 0 1 0 0 0 } { -1 0 1 0 0 } { 0 -1 0 1 0 0 } { "
-                           "0 0 -1 0 1 } { 0 0 0 -1 0 } }"};
+static void
+CartanMutatorA5(benchmark::State& state) {
+  cluster::QuiverMatrix a5{
+      "{ { 0 1 0 0 0 } { -1 0 1 0 0 } { 0 -1 0 1 0 0 } { "
+      "0 0 -1 0 1 } { 0 0 0 -1 0 } }"};
   arma::Mat<int> a{{2, 1, 0, 0, 0},
                    {1, 2, 1, 0, 0},
                    {0, 1, 2, 1, 0},
@@ -83,7 +90,8 @@ static void CartanMutatorA5(benchmark::State &state) {
 }
 BENCHMARK(CartanMutatorA5);
 
-static void VectorMutateA3(benchmark::State &state) {
+static void
+VectorMutateA3(benchmark::State& state) {
   arma::Mat<int> a = {{2, 1, 0}, {1, 2, 1}, {0, 1, 2}};
   cluster::QuiverMatrix q("{ { 0 1 0 } { -1 0 1 } { 0 -1 0 } }");
   refl::VectorMutator vm(q, a);
@@ -95,7 +103,8 @@ static void VectorMutateA3(benchmark::State &state) {
 }
 BENCHMARK(VectorMutateA3);
 
-static void VectorMutateA4(benchmark::State &state) {
+static void
+VectorMutateA4(benchmark::State& state) {
   arma::Mat<int> a = {{2, 1, 0, 0}, {1, 2, 1, 0}, {0, 1, 2, 1}, {0, 0, 1, 2}};
   cluster::QuiverMatrix q(
       "{ { 0 1 0 0 } { -1 0 1 0 } { 0 -1 0 1 } { 0 0 -1 0 } }");
@@ -109,14 +118,16 @@ static void VectorMutateA4(benchmark::State &state) {
 }
 BENCHMARK(VectorMutateA4);
 
-static void VectorMutateA5(benchmark::State &state) {
+static void
+VectorMutateA5(benchmark::State& state) {
   arma::Mat<int> a = {{2, 1, 0, 0, 0},
                       {1, 2, 1, 0, 0},
                       {0, 1, 2, 1, 0},
                       {0, 0, 1, 2, 1},
                       {0, 0, 0, 1, 2}};
-  cluster::QuiverMatrix q("{ { 0 1 0 0 0 } { -1 0 1 0 0 } { 0 -1 0 1 0 } { 0 0 "
-                          "-1 0 1 } { 0 0 0 -1 0 } }");
+  cluster::QuiverMatrix q(
+      "{ { 0 1 0 0 0 } { -1 0 1 0 0 } { 0 -1 0 1 0 } { 0 0 "
+      "-1 0 1 } { 0 0 0 -1 0 } }");
   refl::VectorMutator vm(q, a);
   arma::Mat<int> vecs = {{1, 0, 0, 0, 0},
                          {0, 1, 0, 0, 0},
@@ -130,20 +141,22 @@ static void VectorMutateA5(benchmark::State &state) {
 }
 BENCHMARK(VectorMutateA5);
 
-static void VectorMutateA5Double(benchmark::State &state) {
+static void
+VectorMutateA5Double(benchmark::State& state) {
   arma::Mat<int> a = {{2, 1, 0, 0, 0},
                       {1, 2, 1, 0, 0},
                       {0, 1, 2, 1, 0},
                       {0, 0, 1, 2, 1},
                       {0, 0, 0, 1, 2}};
-  cluster::QuiverMatrix q("{ { 0 1 0 0 0 } { -1 0 1 0 0 } { 0 -1 0 1 0 } { 0 0 "
-                          "-1 0 1 } { 0 0 0 -1 0 } }");
+  cluster::QuiverMatrix q(
+      "{ { 0 1 0 0 0 } { -1 0 1 0 0 } { 0 -1 0 1 0 } { 0 0 "
+      "-1 0 1 } { 0 0 0 -1 0 } }");
   refl::VectorMutator vm(q, a);
   arma::Mat<double> vecs = {{1, 0, 0, 0, 0},
-                         {0, 1, 0, 0, 0},
-                         {0, 0, 1, 0, 0},
-                         {0, 0, 0, 1, 0},
-                         {0, 0, 0, 0, 1}};
+                            {0, 1, 0, 0, 0},
+                            {0, 0, 1, 0, 0},
+                            {0, 0, 0, 1, 0},
+                            {0, 0, 0, 0, 1}};
   arma::Mat<double> res(5, 5);
   while (state.KeepRunning()) {
     vm.mutate(vecs, 0, res);

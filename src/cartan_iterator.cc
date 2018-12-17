@@ -5,9 +5,9 @@
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- * 
+ *
  *     http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -24,14 +24,14 @@ namespace refl {
 namespace {
 arma::Mat<int>
 convert(cluster::QuiverMatrix const& q) {
-	arma::Mat<int> res(util::to_arma(q));
-	for(uint_fast16_t i = 0; i < res.n_elem; ++i) {
-		res(i) = std::abs(res(i));
-	}
-	for(uint_fast16_t i = 0; i < res.n_cols; ++i) {
-		res(i, i) = 2;
-	}
-	return res;
+  arma::Mat<int> res(util::to_arma(q));
+  for (uint_fast16_t i = 0; i < res.n_elem; ++i) {
+    res(i) = std::abs(res(i));
+  }
+  for (uint_fast16_t i = 0; i < res.n_cols; ++i) {
+    res(i, i) = 2;
+  }
+  return res;
 }
 /**
  * Make a bitset which has a 1 at each non-zero value in the off diagonal
@@ -45,29 +45,29 @@ convert(cluster::QuiverMatrix const& q) {
  */
 boost::dynamic_bitset<>
 zeros(arma::Mat<int> const& a, uint_fast16_t vals) {
-	boost::dynamic_bitset<> result{ vals, 0 };
-	uint_fast16_t row = 0;
-	uint_fast16_t col = 1;
-	for(uint_fast16_t i = 0; i < vals; ++i) {
-		result[i] = a(row, col) != 0;
-		if(++col >= a.n_cols) {
-			col = ++row + 1;
-		}
-	}
-	return result;
+  boost::dynamic_bitset<> result{vals, 0};
+  uint_fast16_t row = 0;
+  uint_fast16_t col = 1;
+  for (uint_fast16_t i = 0; i < vals; ++i) {
+    result[i] = a(row, col) != 0;
+    if (++col >= a.n_cols) {
+      col = ++row + 1;
+    }
+  }
+  return result;
 }
-}
-CartanIterator::CartanIterator(cluster::QuiverMatrix const& q) 
-	: _number_vars( (q.num_rows() * (q.num_rows() - 1) ) / 2 ),
-		_initial(convert(q)),
-		_result(_initial.n_rows, _initial.n_cols),
-		_zero_mask(zeros(_initial, _number_vars)),
-		_non_zero_vars { _zero_mask.count() },
-		_current_val {0},
-		_max_val(std::pow(2, _non_zero_vars)) {}
+}  // namespace
+CartanIterator::CartanIterator(cluster::QuiverMatrix const& q)
+    : _number_vars((q.num_rows() * (q.num_rows() - 1)) / 2)
+    , _initial(convert(q))
+    , _result(_initial.n_rows, _initial.n_cols)
+    , _zero_mask(zeros(_initial, _number_vars))
+    , _non_zero_vars{_zero_mask.count()}
+    , _current_val{0}
+    , _max_val(std::pow(2, _non_zero_vars)) {}
 bool
 CartanIterator::has_next() {
-	return _current_val < _max_val;
+  return _current_val < _max_val;
 }
 /*
  * Convert int _current_val into its binary representation, then insert this
@@ -79,31 +79,30 @@ CartanIterator::has_next() {
  * matrix.
  */
 arma::Mat<int>&
-CartanIterator::next(){
-	boost::dynamic_bitset<> val_bits{_non_zero_vars, _current_val};
-	boost::dynamic_bitset<> bits_with_zeros { _zero_mask };
-	uint_fast16_t val_pos = 0;
-	for(uint_fast16_t i = 0; i < bits_with_zeros.size(); ++i) {
-		if(bits_with_zeros[i]) {
-			bits_with_zeros[i] = val_bits[val_pos];
-			++val_pos;
-		}
-	}
+CartanIterator::next() {
+  boost::dynamic_bitset<> val_bits{_non_zero_vars, _current_val};
+  boost::dynamic_bitset<> bits_with_zeros{_zero_mask};
+  uint_fast16_t val_pos = 0;
+  for (uint_fast16_t i = 0; i < bits_with_zeros.size(); ++i) {
+    if (bits_with_zeros[i]) {
+      bits_with_zeros[i] = val_bits[val_pos];
+      ++val_pos;
+    }
+  }
 
-	_result = _initial;
-	uint_fast16_t row = 0;
-	uint_fast16_t col = 1;
-	for(uint_fast16_t i = 0; i < _number_vars; ++i) {
-		if(bits_with_zeros[i]) {
-			_result(row, col) = -1 * _result(row, col);
-			_result(col, row) = -1 * _result(col, row);
-		}
-		if(++col >= _result.n_cols) {
-			col = ++row + 1;
-		}
-	}
-	++_current_val;
-	return _result;
+  _result = _initial;
+  uint_fast16_t row = 0;
+  uint_fast16_t col = 1;
+  for (uint_fast16_t i = 0; i < _number_vars; ++i) {
+    if (bits_with_zeros[i]) {
+      _result(row, col) = -1 * _result(row, col);
+      _result(col, row) = -1 * _result(col, row);
+    }
+    if (++col >= _result.n_cols) {
+      col = ++row + 1;
+    }
+  }
+  ++_current_val;
+  return _result;
 }
-}
-
+}  // namespace refl

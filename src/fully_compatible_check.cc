@@ -4,9 +4,10 @@
 #include "compatible_cartan.h"
 
 namespace refl {
-bool FullyCompatibleCheck::operator()(cluster::QuiverMatrix const& q,
-                                      MutationStar const& star,
-                                      arma::Mat<int> const& AQ) {
+bool
+FullyCompatibleCheck::operator()(cluster::QuiverMatrix const& q,
+                                 MutationStar const& star,
+                                 arma::Mat<int> const& AQ) {
   static arma::Mat<int> gram_matrix;
   bool result = true;
   gram_matrix.set_size(q.num_rows(), q.num_cols());
@@ -22,16 +23,17 @@ bool FullyCompatibleCheck::operator()(cluster::QuiverMatrix const& q,
   }
   return result;
 }
-bool FullyCompatibleCheck::operator()(cluster::QuiverMatrix const& q,
-                                      arma::Mat<int> const& AQ) {
+bool
+FullyCompatibleCheck::operator()(cluster::QuiverMatrix const& q,
+                                 arma::Mat<int> const& AQ) {
   const MutationStar star(q);
   return operator()(q, star, AQ);
 }
-FixedQuiverFullyCompatibleCheck::FixedQuiverFullyCompatibleCheck(cluster::QuiverMatrix q)
-	: quiver(std::move(q))
-	, star(quiver)
-	, check() {}
-bool FixedQuiverFullyCompatibleCheck::operator()(arma::Mat<int> const& cartan) {
-	return check(quiver, star, cartan);
+FixedQuiverFullyCompatibleCheck::FixedQuiverFullyCompatibleCheck(
+    cluster::QuiverMatrix q)
+    : quiver(std::move(q)), star(quiver), check() {}
+bool
+FixedQuiverFullyCompatibleCheck::operator()(arma::Mat<int> const& cartan) {
+  return check(quiver, star, cartan);
 }
-}
+}  // namespace refl

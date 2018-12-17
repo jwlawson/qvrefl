@@ -24,7 +24,8 @@ struct State {
   Quiver const* quiver;
   arma::Mat<int> const* cartan;
 };
-State insert_quiver(Map& map, Quiver q, CartanInfo info) {
+State
+insert_quiver(Map& map, Quiver q, CartanInfo info) {
   auto ins = map.emplace(std::move(q), std::move(info));
   auto& first_iter = ins.first;
   auto& c_info = ins.first->second;
@@ -33,33 +34,35 @@ State insert_quiver(Map& map, Quiver q, CartanInfo info) {
 
   return {c_info.index, &(first_iter->first), &(cartan_vec[num_cartans - 1])};
 }
-State insert_quiver(Map& map, int index, Quiver q, arma::Mat<int> cartan) {
+State
+insert_quiver(Map& map, int index, Quiver q, arma::Mat<int> cartan) {
   CartanInfo info{index, {std::move(cartan)}};
   return insert_quiver(map, q, std::move(info));
 }
 
-int main(int argc, char* argv[]) {
+int
+main(int argc, char* argv[]) {
   Map map;
-	std::string quiver_str;
-	if(argc > 1) {
-		quiver_str = argv[1];
-	} else {
-		quiver_str =
-      "{ { 0 1 1 0 -1 -1 }"
-      "  { -1 0 -1 1 0 1 }"
-      "  { -1 1 0 -1 1 0 }"
-      "  { 0 -1 1 0 1 -1 }"
-      "  { 1 0 -1 -1 0 1 }"
-      "  { 1 -1 0 1 -1 0 } }";
-	}
+  std::string quiver_str;
+  if (argc > 1) {
+    quiver_str = argv[1];
+  } else {
+    quiver_str =
+        "{ { 0 1 1 0 -1 -1 }"
+        "  { -1 0 -1 1 0 1 }"
+        "  { -1 1 0 -1 1 0 }"
+        "  { 0 -1 1 0 1 -1 }"
+        "  { 1 0 -1 -1 0 1 }"
+        "  { 1 -1 0 1 -1 0 } }";
+  }
   Quiver initial(quiver_str);
   refl::CompatibleCartanIterator cartans(initial);
   CartanInfo initial_info{0, {}};
 
-	if(!cartans.has_next()) {
-		std::cout << "Quiver has no fully compatible cartans!\n";
-		return 1;
-	}
+  if (!cartans.has_next()) {
+    std::cout << "Quiver has no fully compatible cartans!\n";
+    return 1;
+  }
   while (cartans.has_next()) {
     initial_info.cartans.push_back(cartans.next());
   }
@@ -135,18 +138,18 @@ int main(int argc, char* argv[]) {
               refl::FullyCompatibleCheck compatible;
               if (!compatible(new_quiver, new_cartan)) {
                 std::cout << "Cartan not fully compatible!\n";
-							}
-							cartan_vec.push_back(std::move(new_cartan));
+              }
+              cartan_vec.push_back(std::move(new_cartan));
               next.cartan = std::addressof(cartan_vec[cartan_vec.size() - 1]);
             }
           }
         } else {
-					++index;
+          ++index;
           std::cout << "New quiver. Index: " << index << '\n';
-					refl::FullyCompatibleCheck compatible;
-					if (!compatible(new_quiver, new_cartan)) {
-						std::cout << "Cartan not fully compatible!\n";
-					}
+          refl::FullyCompatibleCheck compatible;
+          if (!compatible(new_quiver, new_cartan)) {
+            std::cout << "Cartan not fully compatible!\n";
+          }
           next = insert_quiver(map, index, std::move(new_quiver),
                                std::move(new_cartan));
         }

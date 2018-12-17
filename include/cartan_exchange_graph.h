@@ -16,8 +16,7 @@ struct CartanQuiver {
   bool fully_compatible;
 };
 struct Mutator {
-  void operator()(CartanQuiver const* const initial,
-                  size_t k,
+  void operator()(CartanQuiver const* const initial, size_t k,
                   CartanQuiver& output) const;
 };
 struct Equiv {
@@ -37,15 +36,15 @@ struct NewInstance {
 struct DontMutateNonCompatible {
   bool operator()(CartanQuiver const* const mptr, int /*vertex*/) const;
 };
-using CartanVertex = cluster::exchange_graph::detail::
-    VertexInfo<CartanQuiver, Hash, Equiv, Equal, Mutator, NewInstance>;
+using CartanVertex =
+    cluster::exchange_graph::detail::VertexInfo<CartanQuiver, Hash, Equiv,
+                                                Equal, Mutator, NewInstance>;
 using CartanGraphInfo = cluster::exchange_graph::detail::GraphInfo<
-    DontMutateNonCompatible,
-    cluster::exchange_graph::detail::NeverStop>;
-}
+    DontMutateNonCompatible, cluster::exchange_graph::detail::NeverStop>;
+}  // namespace cartan_exchange
 typedef cluster::exchange_graph::Graph<cartan_exchange::CartanVertex,
                                        cartan_exchange::CartanGraphInfo>
     CartanExchangeGraph;
-}
+}  // namespace refl
 
 #endif

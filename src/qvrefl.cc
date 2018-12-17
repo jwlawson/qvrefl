@@ -14,26 +14,26 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+#include <unistd.h>
 #include <iostream>
 #include <string>
-#include <unistd.h>
 
 #include <boost/dynamic_bitset.hpp>
 
-#include "qv/mutation_class_loader.h"
 #include "qv/equiv_mutation_class_loader.h"
+#include "qv/mutation_class_loader.h"
 #include "qv/stream_iterator.h"
 
-#include "filtered_iterator.h"
 #include "cartan_equiv.h"
 #include "cartan_iterator.h"
 #include "cartan_mutator.h"
 #include "compatible_cartan.h"
+#include "filtered_iterator.h"
 #include "mutation_star.h"
 #include "semi_positive_filter.h"
-#include "vector_mutator.h"
 #include "unique_matrix_filter.h"
 #include "util.h"
+#include "vector_mutator.h"
 
 namespace refl {
 namespace {
@@ -43,7 +43,8 @@ using UniqueCartanIter =
 using SemiPosIter =
     FilteredIterator<UniqueCartanIter, arma::Mat<int>, SemiPositiveFilter>;
 
-auto get_cartan_iterator(cluster::QuiverMatrix const& q) {
+auto
+get_cartan_iterator(cluster::QuiverMatrix const& q) {
   CartanIterator cartan(q);
   // UniqueCartanIter unique(std::move(cartan));
   // return SemiPosIter(std::move(unique));
@@ -57,7 +58,8 @@ auto get_cartan_iterator(cluster::QuiverMatrix const& q) {
  * If no such quasi-Cartan companion exists for a given vertex, then there will
  * still be a matrix in the vector, however all its values will be zero.
  */
-MatrixVec find_serving_cartans(cluster::QuiverMatrix const& q) {
+MatrixVec
+find_serving_cartans(cluster::QuiverMatrix const& q) {
   MatrixVec result(q.num_cols(), arma::Mat<int>(q.num_rows(), q.num_cols()));
   boost::dynamic_bitset<> found{q.num_cols(), 0};
   const MutationStar star(q);
@@ -89,8 +91,9 @@ MatrixVec find_serving_cartans(cluster::QuiverMatrix const& q) {
  * the given quiver. If no such companion exists, then print that the vertex is
  * not served by a Cartan matrix.
  */
-void output_serving_cartans(cluster::QuiverMatrix const& q,
-                            std::ostream& os = std::cout) {
+void
+output_serving_cartans(cluster::QuiverMatrix const& q,
+                       std::ostream& os = std::cout) {
   auto res = refl::find_serving_cartans(q);
   int_fast16_t size = res.size();
   for (int_fast16_t i = 0; i < size; ++i) {
@@ -111,8 +114,8 @@ void output_serving_cartans(cluster::QuiverMatrix const& q,
  * false, otherwise the first item is true and the second item is this first
  * Cartan matrix.
  */
-std::pair<bool, arma::Mat<int>> first_compatible_cartan(
-    cluster::QuiverMatrix const& q) {
+std::pair<bool, arma::Mat<int>>
+first_compatible_cartan(cluster::QuiverMatrix const& q) {
   bool result = false;
   arma::Mat<int> cartan;
   const MutationStar star(q);
@@ -140,9 +143,9 @@ std::pair<bool, arma::Mat<int>> first_compatible_cartan(
   return {result, cartan};
 }
 /* Check if a semipositive cartan matrix is fully compatible with the quiver. */
-bool check_compatible(cluster::QuiverMatrix const& q,
-                      arma::Mat<int> const& AQ,
-                      std::ostream& os = std::cout) {
+bool
+check_compatible(cluster::QuiverMatrix const& q, arma::Mat<int> const& AQ,
+                 std::ostream& os = std::cout) {
   bool result = true;
   const MutationStar star(q);
   arma::Mat<int> gram_matrix(q.num_rows(), q.num_cols());
@@ -171,9 +174,9 @@ bool check_compatible(cluster::QuiverMatrix const& q,
  * each mutation is checked to be a companion of the corresponding mutated
  * quiver.
  */
-bool repeat_check_compatible(cluster::QuiverMatrix const& q,
-                             MutationStar const& star,
-                             arma::Mat<int> const& AQ) {
+bool
+repeat_check_compatible(cluster::QuiverMatrix const& q,
+                        MutationStar const& star, arma::Mat<int> const& AQ) {
   static arma::Mat<int> gram_matrix;
   bool result = true;
   gram_matrix.set_size(q.num_rows(), q.num_cols());
@@ -196,9 +199,10 @@ bool repeat_check_compatible(cluster::QuiverMatrix const& q,
  * The Cartan is provided as a QuiverMatrix, so will be converted into an arma
  * matrix. This will involve some allocation.
  */
-bool check_compatible(cluster::QuiverMatrix const& q,
-                      cluster::QuiverMatrix const& cartan,
-                      std::ostream& os = std::cout) {
+bool
+check_compatible(cluster::QuiverMatrix const& q,
+                 cluster::QuiverMatrix const& cartan,
+                 std::ostream& os = std::cout) {
   arma::Mat<int> const AQ = util::to_arma(cartan);
   bool result = check_compatible(q, AQ, os);
   return result;
@@ -210,7 +214,8 @@ bool check_compatible(cluster::QuiverMatrix const& q,
  * Only distinct, i.e. non-equivalent, Cartan matrices will be returned. (Where
  * equivalence is given by flipping signs at a vertex.)
  */
-std::vector<arma::Mat<int>> all_compatible(cluster::QuiverMatrix const& q) {
+std::vector<arma::Mat<int>>
+all_compatible(cluster::QuiverMatrix const& q) {
   auto cartan_iter = get_cartan_iterator(q);
   MutationStar const star(q);
   CartanEquiv equiv;
@@ -245,8 +250,9 @@ std::vector<arma::Mat<int>> all_compatible(cluster::QuiverMatrix const& q) {
  * the given quiver are equivalent (up to flipping signs at vertices). If not
  * all the possble companions are printed to the supplied ostream.
  */
-bool check_all_compatible_equiv(cluster::QuiverMatrix const& q,
-                                std::ostream& os = std::cout) {
+bool
+check_all_compatible_equiv(cluster::QuiverMatrix const& q,
+                           std::ostream& os = std::cout) {
   auto compatible_cartans = all_compatible(q);
   bool all_equiv = compatible_cartans.size() == 1;
 
@@ -257,10 +263,11 @@ bool check_all_compatible_equiv(cluster::QuiverMatrix const& q,
   }
   return all_equiv;
 }
-}
-}
+}  // namespace
+}  // namespace refl
 enum Func { ListCompatible, SameCompatible, CheckSingle, CompatibleEquiv };
-void usage() {
+void
+usage() {
   std::cout << "qvrefl -cels [-m matrix] [-i in_file] [-a cartan]"
             << std::cout.widen('\n');
   std::cout << "  -m Specify matrix to find quasi-Cartan companions of"
@@ -281,7 +288,8 @@ void usage() {
       << std::cout.widen('\n');
   std::cout.flush();
 }
-int main(int argc, char* argv[]) {
+int
+main(int argc, char* argv[]) {
   std::string matrix;
   std::string cartan;
   Func function = Func::ListCompatible;
@@ -392,8 +400,9 @@ int main(int argc, char* argv[]) {
                            cluster::QuiverMatrix{cartan});
   } else if (function == Func::CompatibleEquiv) {
     if (!matrix.empty()) {
-      std::cout << std::boolalpha << refl::check_all_compatible_equiv(
-                                         cluster::QuiverMatrix{matrix})
+      std::cout << std::boolalpha
+                << refl::check_all_compatible_equiv(
+                       cluster::QuiverMatrix{matrix})
                 << std::cout.widen('\n');
     } else if (!input.empty()) {
       std::ifstream inf;
