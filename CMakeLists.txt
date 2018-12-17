@@ -61,6 +61,12 @@ qv_executable(TARGET cmut
   PUBLIC_LIBRARIES refl
 )
 
+install(TARGETS refl qvrefl cexch cmut
+  RUNTIME DESTINATION bin
+  LIBRARY DESTINATION lib
+  ARCHIVE DESTINATION lib
+)
+
 if(benchmark_FOUND)
   qv_executable(TARGET benchmark
     SOURCES ${_source_dir}/benchmark.cc
